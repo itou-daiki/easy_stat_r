@@ -397,12 +397,32 @@ if df is not None and not df.empty:
             if hasattr(npt, "node_df"):
                 try:
                     node_df = npt.node_df
-                    if node_df is not None and "word" in node_df.columns:
-                        node_to_word_mapping = node_df["word"].to_dict()
-                    elif node_df is not None and "words" in node_df.columns:
-                        node_to_word_mapping = node_df["words"].to_dict()
+                    if node_df is not None:
+                        # デバッグ: node_dfの構造を確認
+                        st.write("🔍 デバッグ: node_dfの情報")
+                        st.write(f"  - 列: {list(node_df.columns)}")
+                        st.write(f"  - 行数: {len(node_df)}")
+                        st.write(f"  - 最初の3行:")
+                        st.write(node_df.head(3))
+                        
+                        # マッピングを作成
+                        if "word" in node_df.columns:
+                            # node列がある場合はそれを使用、なければindexを使用
+                            if "node" in node_df.columns:
+                                node_to_word_mapping = dict(zip(node_df["node"], node_df["word"]))
+                            else:
+                                node_to_word_mapping = node_df["word"].to_dict()
+                            
+                            st.write(f"  - マッピング例: {dict(list(node_to_word_mapping.items())[:5])}")
+                        elif "words" in node_df.columns:
+                            if "node" in node_df.columns:
+                                node_to_word_mapping = dict(zip(node_df["node"], node_df["words"]))
+                            else:
+                                node_to_word_mapping = node_df["words"].to_dict()
                 except Exception as e:
-                    st.warning(f"ノードと単語のマッピング作成でエラー: {e}")
+                    st.error(f"ノードと単語のマッピング作成でエラー: {e}")
+                    import traceback
+                    st.code(traceback.format_exc())
 
             # Plotlyバージョンを試行
             fig_net = create_cooccurrence_network_with_communities(
@@ -514,12 +534,23 @@ if df is not None and not df.empty:
                 if hasattr(npt_cat, "node_df"):
                     try:
                         node_df_cat = npt_cat.node_df
-                        if node_df_cat is not None and "word" in node_df_cat.columns:
-                            node_to_word_mapping_cat = node_df_cat["word"].to_dict()
-                        elif node_df_cat is not None and "words" in node_df_cat.columns:
-                            node_to_word_mapping_cat = node_df_cat["words"].to_dict()
+                        if node_df_cat is not None:
+                            # マッピングを作成
+                            if "word" in node_df_cat.columns:
+                                # node列がある場合はそれを使用、なければindexを使用
+                                if "node" in node_df_cat.columns:
+                                    node_to_word_mapping_cat = dict(zip(node_df_cat["node"], node_df_cat["word"]))
+                                else:
+                                    node_to_word_mapping_cat = node_df_cat["word"].to_dict()
+                            elif "words" in node_df_cat.columns:
+                                if "node" in node_df_cat.columns:
+                                    node_to_word_mapping_cat = dict(zip(node_df_cat["node"], node_df_cat["words"]))
+                                else:
+                                    node_to_word_mapping_cat = node_df_cat["words"].to_dict()
                     except Exception as e:
-                        st.warning(f"カテゴリ「{cat}」のノード-単語マッピング作成でエラー: {e}")
+                        st.error(f"カテゴリ「{cat}」のノード-単語マッピング作成でエラー: {e}")
+                        import traceback
+                        st.code(traceback.format_exc())
 
                 fig_cat = create_cooccurrence_network_with_communities(
                     graph_obj_cat,
