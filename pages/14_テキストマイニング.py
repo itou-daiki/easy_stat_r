@@ -429,20 +429,26 @@ if df is not None and not df.empty:
                         st.write(f"  - 最初の3行:")
                         st.write(node_df.head(3))
                         
-                        # マッピングを作成
-                        if "word" in node_df.columns:
-                            # node列がある場合はそれを使用、なければindexを使用
+                        # マッピングを作成（nlplotではid_code -> idのマッピング）
+                        if "id_code" in node_df.columns and "id" in node_df.columns:
+                            # id_code（ノード番号）をキー、id（単語）を値とする
+                            node_to_word_mapping = dict(zip(node_df["id_code"], node_df["id"]))
+                            st.write(f"  - ✅ マッピング作成成功！")
+                            st.write(f"  - マッピング例: {dict(list(node_to_word_mapping.items())[:5])}")
+                        elif "word" in node_df.columns:
+                            # 古いバージョン対応
                             if "node" in node_df.columns:
                                 node_to_word_mapping = dict(zip(node_df["node"], node_df["word"]))
                             else:
                                 node_to_word_mapping = node_df["word"].to_dict()
-                            
                             st.write(f"  - マッピング例: {dict(list(node_to_word_mapping.items())[:5])}")
                         elif "words" in node_df.columns:
                             if "node" in node_df.columns:
                                 node_to_word_mapping = dict(zip(node_df["node"], node_df["words"]))
                             else:
                                 node_to_word_mapping = node_df["words"].to_dict()
+                        else:
+                            st.warning("⚠️ node_dfに単語情報の列が見つかりません")
                 except Exception as e:
                     st.error(f"ノードと単語のマッピング作成でエラー: {e}")
                     import traceback
