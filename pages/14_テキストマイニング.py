@@ -384,6 +384,30 @@ if df is not None and not df.empty:
         try:
             npt.build_graph(stopwords=stopwords_list, min_edge_frequency=1)
             
+            # ===== デバッグ開始 =====
+            st.write("=" * 50)
+            st.write("🔍 **全体の共起ネットワーク - デバッグ情報**")
+            st.write("=" * 50)
+            
+            # nlplotオブジェクトの属性を確認
+            st.write("### 1. nlplotオブジェクトの属性")
+            npt_attrs = [attr for attr in dir(npt) if not attr.startswith("_")]
+            st.write(f"利用可能な属性数: {len(npt_attrs)}")
+            graph_related = [a for a in npt_attrs if "graph" in a.lower() or a in ["G", "nwx", "node_df", "node_edge_df"]]
+            st.write(f"グラフ関連属性: {graph_related}")
+            
+            # node_dfの有無を確認
+            st.write("### 2. node_dfの確認")
+            st.write(f"hasattr(npt, \"node_df\"): {hasattr(npt, 'node_df')}")
+            if hasattr(npt, "node_df"):
+                st.write(f"npt.node_df is None: {npt.node_df is None}")
+                if npt.node_df is not None:
+                    st.write(f"npt.node_df型: {type(npt.node_df)}")
+                    st.write(f"npt.node_df.shape: {npt.node_df.shape}")
+                    st.write(f"npt.node_df.columns: {list(npt.node_df.columns)}")
+                    st.write("node_dfの最初の5行:")
+                    st.dataframe(npt.node_df.head(5))
+            
             # nlplotのグラフオブジェクトを取得（バージョンによって属性名が異なる）
             # nlplotのグラフオブジェクトを取得（バージョンや実装によって属性名が異なる）
             graph_obj = getattr(npt, 'nwx', None) or getattr(npt, 'G', None) or getattr(npt, 'graph', None)
