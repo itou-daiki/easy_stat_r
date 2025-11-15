@@ -365,7 +365,12 @@ if df is not None and not df.empty:
             npt.build_graph(stopwords=stopwords_list, min_edge_frequency=1)
             
             # nlplotのグラフオブジェクトを取得（バージョンによって属性名が異なる）
-            graph_obj = getattr(npt, 'G', None) or getattr(npt, 'graph', None)
+            # nlplotのグラフオブジェクトを取得（バージョンや実装によって属性名が異なる）
+            graph_obj = getattr(npt, 'nwx', None) or getattr(npt, 'G', None) or getattr(npt, 'graph', None)
+            
+            if graph_obj is None:
+                st.error("共起ネットワークのグラフオブジェクトを取得できませんでした。")
+                raise AttributeError("NLPlot object has no valid graph attribute (tried: nwx, G, graph)")
 
             # Plotlyバージョンを試行
             fig_net = create_cooccurrence_network_with_communities(
@@ -463,7 +468,12 @@ if df is not None and not df.empty:
                 npt_cat.build_graph(stopwords=stopwords_list, min_edge_frequency=1)
                 
                 # nlplotのグラフオブジェクトを取得（バージョンによって属性名が異なる）
-                graph_obj_cat = getattr(npt_cat, 'G', None) or getattr(npt_cat, 'graph', None)
+                # nlplotのグラフオブジェクトを取得（バージョンや実装によって属性名が異なる）
+                graph_obj_cat = getattr(npt_cat, 'nwx', None) or getattr(npt_cat, 'G', None) or getattr(npt_cat, 'graph', None)
+                
+                if graph_obj_cat is None:
+                    st.warning(f"カテゴリ「{cat}」の共起ネットワークのグラフオブジェクトを取得できませんでした。")
+                    continue
 
                 fig_cat = create_cooccurrence_network_with_communities(
                     graph_obj_cat,
