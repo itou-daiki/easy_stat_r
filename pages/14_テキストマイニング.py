@@ -166,10 +166,11 @@ def create_cooccurrence_network_with_communities(graph, title='共起ネット�
 
     # レイアウト計算（KH CoderはKamada-Kawaiを使用）
     try:
-        pos = nx.kamada_kawai_layout(subgraph)
+        # scaleパラメータでノード間の距離を調整（大きいほど広がる）
+        pos = nx.kamada_kawai_layout(subgraph, scale=2.0)
     except:
-        # フォールバック: spring layout
-        pos = nx.spring_layout(subgraph, k=1, iterations=50)
+        # フォールバック: spring layout（k値を大きくしてノード間の距離を広げる）
+        pos = nx.spring_layout(subgraph, k=2.0, iterations=100)
 
     # ノードの中心性を計算（ノードサイズ用）
     try:
@@ -217,14 +218,14 @@ def create_cooccurrence_network_with_communities(graph, title='共起ネット�
                 node_x.append(x)
                 node_y.append(y)
                 node_text.append(f"{node_to_word.get(node, str(node))}<br>グループ: {comm_id + 1}<br>中心性: {degree_centrality[node]:.3f}")
-                node_size.append(20 + degree_centrality[node] * 100)
+                node_size.append(15 + degree_centrality[node] * 80)
 
             node_trace = go.Scatter(
                 x=node_x,
                 y=node_y,
                 mode='markers+text',
                 text=[node_to_word.get(node, str(node)) for node in nodes_in_comm],
-                textposition='middle center',
+                textposition='top center',
                 textfont=dict(
                     size=12,
                     family='IPAexGothic, "Hiragino Sans", "Noto Sans CJK JP", "Yu Gothic", Meiryo, Arial, sans-serif',
@@ -253,8 +254,8 @@ def create_cooccurrence_network_with_communities(graph, title='共起ネット�
             xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
             yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
             plot_bgcolor='white',
-            width=1000,
-            height=600,
+            width=1200,
+            height=800,
             font=dict(
                 family='IPAexGothic, "Hiragino Sans", "Noto Sans CJK JP", "Yu Gothic", Meiryo, Arial, sans-serif',
                 size=12,
@@ -265,7 +266,7 @@ def create_cooccurrence_network_with_communities(graph, title='共起ネット�
         return fig
     else:
         # matplotlibで描画
-        fig_net, ax = plt.subplots(figsize=(12, 8))
+        fig_net, ax = plt.subplots(figsize=(16, 12))
 
         # コミュニティごとに色を設定
         num_communities = len(set(node_to_community.values()))
