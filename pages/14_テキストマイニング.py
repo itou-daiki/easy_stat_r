@@ -407,6 +407,8 @@ if df is not None and not df.empty:
                     st.write(f"npt.node_df.columns: {list(npt.node_df.columns)}")
                     st.write("node_dfの最初の5行:")
                     st.dataframe(npt.node_df.head(5))
+
+            st.write("### 3. マッピング作成")
             
             # nlplotのグラフオブジェクトを取得（バージョンによって属性名が異なる）
             # nlplotのグラフオブジェクトを取得（バージョンや実装によって属性名が異なる）
@@ -422,13 +424,7 @@ if df is not None and not df.empty:
                 try:
                     node_df = npt.node_df
                     if node_df is not None:
-                        # デバッグ: node_dfの構造を確認
-                        st.write("🔍 デバッグ: node_dfの情報")
-                        st.write(f"  - 列: {list(node_df.columns)}")
-                        st.write(f"  - 行数: {len(node_df)}")
-                        st.write(f"  - 最初の3行:")
-                        st.write(node_df.head(3))
-                        
+
                         # マッピングを作成（nlplotではid_code -> idのマッピング）
                         if "id_code" in node_df.columns and "id" in node_df.columns:
                             # id_code（ノード番号）をキー、id（単語）を値とする
