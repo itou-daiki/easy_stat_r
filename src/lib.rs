@@ -3,6 +3,8 @@ use wasm_bindgen::prelude::*;
 
 mod app;
 mod components;
+mod state;
+mod utils;
 
 use app::App;
 

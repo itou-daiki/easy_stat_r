@@ -3,9 +3,15 @@ use crate::components::header::Header;
 use crate::components::footer::Footer;
 use crate::components::sidebar::Sidebar;
 use crate::components::guide::Guide;
+use crate::components::file_upload::FileUpload;
+use crate::state::AppData;
 
 #[component]
 pub fn App() -> impl IntoView {
+    // Provide global state
+    let app_data = AppData::new();
+    provide_context(app_data.clone());
+
     view! {
         <div style="display: flex;">
             <Sidebar/>
@@ -17,6 +23,26 @@ pub fn App() -> impl IntoView {
                     </div>
 
                     <Header/>
+                    
+                    // Data Upload Section
+                    <div class="fade-in">
+                        <FileUpload/>
+                    </div>
+                    
+                    // Display Data Info (Optional debugging)
+                    {move || {
+                         if let Some(df) = app_data.df.get() {
+                            let shape = df.shape();
+                            view! {
+                                <div class="section fade-in">
+                                    <h2 class="section-title">"データ情報"</h2>
+                                    <p>"行数: " {shape.0} ", 列数: " {shape.1}</p>
+                                </div>
+                            }.into_view()
+                         } else {
+                            view! { <div/> }.into_view()
+                         }
+                    }}
 
                     <div class="section fade-in">
                         <h2 class="section-title">
