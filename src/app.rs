@@ -12,7 +12,10 @@ use crate::pages::{
     correlation::Correlation, 
     chi_square::ChiSquare,
     t_test_unified::TTestUnified,
-    anova_unified::AnovaUnified
+    anova_unified::AnovaUnified,
+    regression::Regression,
+    pca::Pca,
+    factor_analysis::FactorAnalysis
 };
 
 #[component]
@@ -50,6 +53,9 @@ pub fn App() -> impl IntoView {
                             <Route path="/chi_square" view=ChiSquare />
                             <Route path="/t_test" view=TTestUnified />
                             <Route path="/anova" view=AnovaUnified />
+                            <Route path="/regression" view=Regression />
+                            <Route path="/pca" view=Pca />
+                            <Route path="/factor_analysis" view=FactorAnalysis />
                         </Routes>
 
                         <Footer/>

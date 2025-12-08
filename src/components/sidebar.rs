@@ -46,6 +46,21 @@ pub fn Sidebar() -> impl IntoView {
                             <i class="fas fa-layer-group" style="width: 24px;"></i> "分散分析 (統合版)"
                         </A>
                     </li>
+                     <li style="margin-bottom: 0.5rem;">
+                        <A href="/regression" class="nav-link" active_class="active">
+                            <i class="fas fa-chart-line" style="width: 24px;"></i> "回帰分析 (統合版)"
+                        </A>
+                    </li>
+                     <li style="margin-bottom: 0.5rem;">
+                        <A href="/pca" class="nav-link" active_class="active">
+                            <i class="fas fa-compress-arrows-alt" style="width: 24px;"></i> "主成分分析"
+                        </A>
+                    </li>
+                     <li style="margin-bottom: 0.5rem;">
+                        <A href="/factor_analysis" class="nav-link" active_class="active">
+                            <i class="fas fa-project-diagram" style="width: 24px;"></i> "因子分析"
+                        </A>
+                    </li>
                     // Add more dummy links based on feature list
                 </ul>
             </nav>

@@ -4,3 +4,6 @@ pub mod correlation;
 pub mod chi_square;
 pub mod t_test_unified;
 pub mod anova_unified;
+pub mod regression;
+pub mod pca;
+pub mod factor_analysis;
