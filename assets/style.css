@@ -51,13 +51,22 @@ body {
     right: -50%;
     width: 200%;
     height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
     animation: pulse 4s ease-in-out infinite;
 }
 
 @keyframes pulse {
-    0%, 100% { transform: scale(1); opacity: 0.5; }
-    50% { transform: scale(1.1); opacity: 0.3; }
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 0.3;
+    }
 }
 
 .hero-title {
@@ -66,7 +75,7 @@ body {
     margin-bottom: 1rem;
     position: relative;
     z-index: 1;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin-top: 0;
 }
 
@@ -299,15 +308,15 @@ body {
     .hero-title {
         font-size: 2.5rem;
     }
-    
+
     .main-container {
         padding: 1rem;
     }
-    
+
     .section {
         padding: 1.5rem;
     }
-    
+
     .feature-grid {
         grid-template-columns: 1fr;
     }
@@ -319,6 +328,7 @@ body {
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);

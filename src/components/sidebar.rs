@@ -1,4 +1,5 @@
 use leptos::*;
+use leptos_router::*;
 
 #[component]
 pub fn Sidebar() -> impl IntoView {
@@ -11,19 +12,29 @@ pub fn Sidebar() -> impl IntoView {
             <nav>
                 <ul style="list-style: none; padding: 0;">
                     <li style="margin-bottom: 0.5rem;">
-                        <a href="#" style="display: block; padding: 0.75rem 1rem; color: var(--text-primary); text-decoration: none; border-radius: 8px; background: rgba(99, 102, 241, 0.1); font-weight: 500;">
+                        <A href="/" exact=true class="nav-link" active_class="active">
                             <i class="fas fa-home" style="width: 24px;"></i> "ホーム"
-                        </a>
+                        </A>
                     </li>
                     <li style="margin-bottom: 0.5rem;">
-                        <a href="#" style="display: block; padding: 0.75rem 1rem; color: var(--text-secondary); text-decoration: none; border-radius: 8px; transition: background 0.2s;">
+                        <A href="/data_cleaning" class="nav-link" active_class="active">
                             <i class="fas fa-broom" style="width: 24px;"></i> "データクレンジング"
-                        </a>
+                        </A>
                     </li>
                      <li style="margin-bottom: 0.5rem;">
-                        <a href="#" style="display: block; padding: 0.75rem 1rem; color: var(--text-secondary); text-decoration: none; border-radius: 8px; transition: background 0.2s;">
+                        <A href="/eda" class="nav-link" active_class="active">
                             <i class="fas fa-search" style="width: 24px;"></i> "EDA"
-                        </a>
+                        </A>
+                    </li>
+                     <li style="margin-bottom: 0.5rem;">
+                        <A href="/correlation" class="nav-link" active_class="active">
+                            <i class="fas fa-project-diagram" style="width: 24px;"></i> "相関分析"
+                        </A>
+                    </li>
+                     <li style="margin-bottom: 0.5rem;">
+                        <A href="/chi_square" class="nav-link" active_class="active">
+                            <i class="fas fa-border-all" style="width: 24px;"></i> "カイ二乗検定"
+                        </A>
                     </li>
                     // Add more dummy links based on feature list
                 </ul>
