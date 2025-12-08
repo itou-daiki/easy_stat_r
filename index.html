@@ -16,7 +16,20 @@
     <link rel="stylesheet" href="assets/style.css">
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.5/d3.layout.cloud.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <script>
+        // Global hook for Plotly
+        window.drawPlot = function (elementId, dataJson, layoutJson) {
+            try {
+                const data = JSON.parse(dataJson);
+                const layout = JSON.parse(layoutJson);
+                Plotly.newPlot(elementId, data, layout);
+            } catch (e) {
+                console.error("Plotly Error:", e);
+            }
+        };
+
+        // Existing D3 hook...
         // JS Interop function for Word Cloud
         window.drawWordCloud = function (wordsJson) {
             const words = JSON.parse(wordsJson);

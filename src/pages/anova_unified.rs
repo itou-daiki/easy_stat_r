@@ -2,7 +2,8 @@ use leptos::*;
 use crate::state::AppData;
 use statrs::distribution::{FisherSnedecor, ContinuousCDF};
 use nalgebra::{DMatrix, DVector};
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
+use serde_json::json;
 
 #[derive(Clone, PartialEq)]
 enum AnovaType {
@@ -20,6 +21,9 @@ pub fn AnovaUnified() -> impl IntoView {
     let (factor2_col, set_factor2_col) = create_signal(String::new());
     
     let (result_summary, set_result_summary) = create_signal(Option::<Vec<String>>::None);
+    let (interpretation, set_interpretation) = create_signal(String::new());
+    
+    let plot_id = "anova_plot";
 
      let columns = create_memo(move |_| {
         if let Some(df) = app_data.df.get() {
@@ -29,16 +33,22 @@ pub fn AnovaUnified() -> impl IntoView {
         }
     });
 
+    // Helper: Draw Plot
+    let draw_plot = move |data: serde_json::Value, layout: serde_json::Value| {
+        #[cfg(target_arch = "wasm32")]
+        {
+             let d_str = data.to_string();
+             let l_str = layout.to_string();
+             let _ = js_sys::eval(&format!("window.drawPlot('{}', '{}', '{}')", plot_id, d_str, l_str));
+        }
+    };
+
     // Helper: OLS fitting
-    // Returns SSE (Sum of Squared Errors) and df_resid
     fn fit_ols(y: &DVector<f64>, x: &DMatrix<f64>) -> Result<(f64, usize), String> {
-        // beta = (X^T X)^-1 X^T y
         let xt = x.transpose();
         let xtx = &xt * x;
         let xty = &xt * y;
         
-        // Solve with Cholesky or LU. xtx is symmetric positive definite generally.
-        // Using cholesky:
         let chol = nalgebra::linalg::Cholesky::new(xtx.clone());
         if let Some(decomp) = chol {
             let beta = decomp.solve(&xty);
@@ -48,49 +58,45 @@ pub fn AnovaUnified() -> impl IntoView {
             let df_resid = y.len() - x.ncols();
             Ok((sse, df_resid))
         } else {
-            Err("Matrix singular or ill-conditioned".to_string())
+            Err("Matrix singular".to_string())
         }
     }
 
-    // Helper: Create Dummy Matrix (One-Hot excluding first level to avoid collinearity with intercept, or use Contrast coding)
-    // For Type II SS, we typically use "Sum Contrasts" or just dummy with care. 
-    // Actually, for Type II SS comparison of models, simple dummy coding (Treatment coding) is sufficient IF we compare correct models.
-    // e.g. SS(A|B) = SSE(B) - SSE(A+B). Both B and A+B models will interpret dummies consistently.
     fn create_design_matrix(
         rows: usize, 
-        factors: Vec<(&String, &Vec<String>)> // (ColName, Data)
+        factors: Vec<(&String, &Vec<String>)> 
     ) -> DMatrix<f64> {
-        // Implementation of basic dummy coding
-        // Always include Intercept column (all 1s)
-        let mut mat_data = vec![1.0; rows]; // Col 0: Intercept
+        let mut mat_data = vec![1.0; rows];
         let mut cols = 1;
-
-        // For each factor, find unique levels, sort them. 
-        // Create k-1 columns (k = levels).
         for (_, values) in factors {
             let mut unique_levels: Vec<_> = values.iter().collect::<HashSet<_>>().into_iter().collect();
             unique_levels.sort();
-            
-            // Skip first level as reference
             if unique_levels.len() > 1 {
                 for level in &unique_levels[1..] {
-                    // Create column
                     let col_vec: Vec<f64> = values.iter().map(|v| if v == *level { 1.0 } else { 0.0 }).collect();
                     mat_data.extend(col_vec);
                     cols += 1;
                 }
             }
         }
-        
         DMatrix::from_vec(rows, cols, mat_data)
     }
     
-    // More complex: Interaction design matrix
-    // A:B needs columns for each combination of levels (excluding reference).
-    // Actually, easier to construct full model strings if using a formula library, but we don't have one in Rust Wasm easily.
-    // Manual construction:
-    // Interaction cols = (LevelA_i * LevelB_j). i \in [1..Ka], j \in [1..Kb] (skipping 0s).
-    
+    fn get_dummies(n: usize, data: &Vec<String>) -> (Vec<Vec<f64>>, Vec<&String>) {
+         let mut unique: Vec<_> = data.iter().collect::<HashSet<_>>().into_iter().collect();
+         unique.sort();
+         let mut dummies = vec![];
+         let mut level_names = vec![];
+         if unique.len() > 1 {
+             for level in &unique[1..] {
+                 let col: Vec<f64> = data.iter().map(|v| if v == *level { 1.0 } else { 0.0 }).collect();
+                 dummies.push(col);
+                 level_names.push(*level);
+             }
+         }
+         (dummies, level_names)
+    }
+
     let calculate = move |_| {
          let df_opt = app_data.df.get_untracked();
         if df_opt.is_none() { return; }
@@ -101,6 +107,9 @@ pub fn AnovaUnified() -> impl IntoView {
         
         if target.is_empty() || f1.is_empty() { return; }
         
+        set_interpretation.set(String::new());
+        set_result_summary.set(None);
+
         // Extract Y
         let y_vec_opt: Option<Vec<f64>> = df.column(&target).ok().and_then(|c| c.f64().ok()).map(|s| s.into_no_null_iter().collect());
         // Extract F1
@@ -118,21 +127,12 @@ pub fn AnovaUnified() -> impl IntoView {
 
         match test_type.get() {
             AnovaType::OneWay => {
-                // One-Way Logic (Simple F-test or OLS)
-                // Model 0: Intercept only
-                // Model 1: Intercept + F1
-                
-                // Design Matrix M0 (Intercept)
                 let x0 = DMatrix::from_element(n, 1, 1.0);
                 
-                // Design Matrix M1 (Full)
-                // Use a simplified helper for one factor
-                // Find unique levels
                 let mut levels: Vec<_> = f1_data.iter().collect::<HashSet<_>>().into_iter().collect();
                 levels.sort();
                 let k = levels.len();
                 
-                // Construct M1 manually to be safe
                 let mut x1_data = vec![1.0; n];
                 let mut x1_cols = 1;
                 for lvl in &levels[1..] {
@@ -140,27 +140,17 @@ pub fn AnovaUnified() -> impl IntoView {
                    x1_data.extend(col);
                    x1_cols += 1;
                 }
-                // row-major to col-major issue? DMatrix::from_vec takes column-major.
-                // Our construction above: [Col0...Col0, Col1...Col1]. This is correct for from_vec.
                 let x1 = DMatrix::from_vec(n, x1_cols, x1_data);
 
                 let res0 = fit_ols(&y_dvec, &x0);
                 let res1 = fit_ols(&y_dvec, &x1);
                 
                 if let (Ok((sse0, _)), Ok((sse1, df_resid1))) = (res0, res1) {
-                    let df_total = n - 1;
                     let df_model = k - 1;
-                    let _df_error = n - k; // same as df_resid1
-                    
-                    let ss_total = sse0; // approx (if mean is 0? No. SSE of intercept model IS SS_total centered)
-                    // Correct: SSE(Intercept) = sum((y - mean)^2) = SSTotal.
-                    
                     let ss_model = sse0 - sse1;
                     let ss_error = sse1;
-                    
                     let ms_model = ss_model / df_model as f64;
                     let ms_error = ss_error / df_resid1 as f64;
-                    
                     let f_val = ms_model / ms_error;
                     
                     let p_val = match FisherSnedecor::new(df_model as f64, df_resid1 as f64) {
@@ -168,17 +158,60 @@ pub fn AnovaUnified() -> impl IntoView {
                         Err(_) => f64::NAN,
                     };
                     
+                    let sig_text = if p_val < 0.05 { "有意な差が認められました" } else { "有意な差は認められませんでした" };
+                    let sig_mark = if p_val < 0.01 { "**" } else if p_val < 0.05 { "*" } else { "n.s." };
+
                      set_result_summary.set(Some(vec![
                         format!("--- One-Way ANOVA Result ---"),
                         format!("Factor: {} ({} levels)", f1, k),
-                        format!("F-statistic: {:.4}", f_val),
-                        format!("p-value: {:.4}", p_val),
-                        format!("df(between): {}", df_model),
-                        format!("df(within): {}", df_resid1),
-                        format!("SS(between): {:.4}", ss_model),
-                        format!("SS(within): {:.4}", ss_error),
-                        format!("Significance: {}", if p_val < 0.05 { "Significant (*)" } else { "Not Significant" })
+                        format!("F({}, {}) = {:.4}, p = {:.4} {}", df_model, df_resid1, f_val, p_val, sig_mark),
                     ]));
+                    
+                     set_interpretation.set(format!(
+                        "【解釈の補助】\n要因「{}」による母平均の差について検定を行った結果、{}(p={:.4})。",
+                         f1, sig_text, p_val
+                    ));
+
+                    // Visualization: Bar Chart of Means
+                    // Calculate mean for each level
+                    let mut means = HashMap::new();
+                    let mut level_order = levels.clone();
+                    level_order.sort(); // Alphabetic order
+
+                    for lvl in &level_order {
+                        let mut sum = 0.0;
+                        let mut count = 0;
+                        for i in 0..n {
+                            if f1_data[i] == **lvl {
+                                sum += y_data[i];
+                                count += 1;
+                            }
+                        }
+                        if count > 0 {
+                            means.insert(*lvl, sum / count as f64);
+                        }
+                    }
+                    
+                    let x_vals: Vec<String> = level_order.iter().map(|s| s.to_string()).collect();
+                    let y_vals: Vec<f64> = level_order.iter().map(|s| *means.get(s).unwrap_or(&0.0)).collect();
+
+                    let data_plot = json!([
+                        {
+                            "type": "bar",
+                            "x": x_vals,
+                            "y": y_vals,
+                            "marker": { "color": "#1f77b4" }
+                        }
+                    ]);
+                    let layout_plot = json!({
+                        "title": format!("means: {} by {}", target, f1),
+                        "yaxis": { "title": target },
+                        "xaxis": { "title": f1 },
+                        "margin": { "t": 40, "b": 40, "l": 50, "r": 20 }
+                    });
+                    
+                    draw_plot(data_plot, layout_plot);
+
 
                 } else {
                     set_result_summary.set(Some(vec!["Error fitting OLS models".to_string()]));
@@ -188,53 +221,17 @@ pub fn AnovaUnified() -> impl IntoView {
                 let f2 = factor2_col.get();
                 if f2.is_empty() { return; }
                 
-                // Extract F2
                  let f2_vec_opt: Option<Vec<String>> = df.column(&f2).ok().map(|s| s.iter().map(|v| v.to_string().replace("\"", "")).collect());
                  if f2_vec_opt.is_none() { return; }
                  let f2_data = f2_vec_opt.unwrap();
-                 
-                 // 1. Prepare Data
-                 // Factors: A=f1_data, B=f2_data
-                 
-                 // 2. Define Models for Type II SS
-                 // SS(A|B) = SSE(B) - SSE(A+B)
-                 // SS(B|A) = SSE(A) - SSE(A+B)
-                 // SS(A:B) = SSE(A+B) - SSE(A+B+A:B)
-                 // Residual = SSE(A+B+A:B)
-                 
-                 // Matrices needed:
-                 // X_A  (for SSE(A) - NOT NEEDED for Type II? Wait. SS(B|A) needs SSE(A))
-                 // X_B  (for SSE(B))
-                 // X_AB (for SSE(A+B))
-                 // X_Full (for SSE(A+B+A:B))
                  
                  let x_a = create_design_matrix(n, vec![(&f1, &f1_data)]);
                  let x_b = create_design_matrix(n, vec![(&f2, &f2_data)]);
                  let x_ab = create_design_matrix(n, vec![(&f1, &f1_data), (&f2, &f2_data)]);
                  
-                 // Construct X_Full (X_AB + Interaction Dummies)
-                 // Interaction Dummies: Product of DummyA_i * DummyB_j
-                 // Need to reconstruct dummies to multiply them.
-                 // Hack: Reuse create_design_matrix logic but return the dummy blocks.
-                 // Easier: Just generate interaction cols manually here.
+                 let (dummies_a, _) = get_dummies(n, &f1_data);
+                 let (dummies_b, _) = get_dummies(n, &f2_data);
                  
-                 fn get_dummies(_n: usize, data: &Vec<String>) -> Vec<Vec<f64>> {
-                      let mut unique: Vec<_> = data.iter().collect::<HashSet<_>>().into_iter().collect();
-                      unique.sort();
-                      let mut dummies = vec![];
-                      if unique.len() > 1 {
-                          for lvl in &unique[1..] {
-                              let col: Vec<f64> = data.iter().map(|v| if v == *lvl { 1.0 } else { 0.0 }).collect();
-                              dummies.push(col);
-                          }
-                      }
-                      dummies
-                 }
-                 
-                 let dummies_a = get_dummies(n, &f1_data);
-                 let dummies_b = get_dummies(n, &f2_data);
-                 
-                 // Create Interaction Cols
                  let mut interaction_cols = vec![];
                  for col_a in &dummies_a {
                      for col_b in &dummies_b {
@@ -243,11 +240,7 @@ pub fn AnovaUnified() -> impl IntoView {
                      }
                  }
                  
-                 // Assemble X_Full
-                 // X_AB columns + Interaction Cols
-                 
-                 let mut full_data_vec = x_ab.data.as_vec().clone(); // This is column-major vector of X_AB
-                 // Append interaction cols
+                 let mut full_data_vec = x_ab.data.as_vec().clone();
                  for col in interaction_cols {
                      full_data_vec.extend(col);
                  }
@@ -257,21 +250,18 @@ pub fn AnovaUnified() -> impl IntoView {
                  
                  let x_full = DMatrix::from_vec(n, cols_full, full_data_vec);
                  
-                 // Run OLS
                  let res_a = fit_ols(&y_dvec, &x_a);
                  let res_b = fit_ols(&y_dvec, &x_b);
                  let res_ab = fit_ols(&y_dvec, &x_ab);
                  let res_full = fit_ols(&y_dvec, &x_full);
                  
-                 if let (Ok((sse_a, _)), Ok((sse_b, _)), Ok((sse_ab, df_resid_ab)), Ok((sse_full, df_resid_full))) = (res_a, res_b, res_ab, res_full) {
+                 if let (Ok((sse_a, _)), Ok((sse_b, _)), Ok((sse_ab, _)), Ok((sse_full, df_resid_full))) = (res_a, res_b, res_ab, res_full) {
                      
-                     // SS Calculations
                      let ss_a = sse_b - sse_ab;
                      let ss_b = sse_a - sse_ab;
                      let ss_axb = sse_ab - sse_full;
                      let ss_error = sse_full;
                      
-                     // Degrees of Freedom
                      let k_a = dummies_a.len();
                      let k_b = dummies_b.len();
                      let df_a = k_a as f64;
@@ -279,18 +269,15 @@ pub fn AnovaUnified() -> impl IntoView {
                      let df_axb = (k_a * k_b) as f64;
                      let df_error = df_resid_full as f64;
                      
-                     // MS
                      let ms_a = ss_a / df_a;
                      let ms_b = ss_b / df_b;
                      let ms_axb = ss_axb / df_axb;
                      let ms_error = ss_error / df_error;
                      
-                     // F-ratios
                      let f_a = ms_a / ms_error;
                      let f_b = ms_b / ms_error;
                      let f_axb = ms_axb / ms_error;
                      
-                     // P-values
                      let get_p = |f, df1, df2| {
                          match FisherSnedecor::new(df1, df2) {
                             Ok(dist) => 1.0 - dist.cdf(f),
@@ -302,18 +289,62 @@ pub fn AnovaUnified() -> impl IntoView {
                      let p_b = get_p(f_b, df_b, df_error);
                      let p_axb = get_p(f_axb, df_axb, df_error);
                      
+                     let interpret = |p| if p < 0.05 { "有意 (*)" } else { "有意ではない" };
+
                      set_result_summary.set(Some(vec![
                         format!("--- Two-Way ANOVA (Type II) Result ---"),
-                        format!("Factor A: {}", f1),
-                        format!("  F={:.4}, p={:.4}, df={}, SS={:.4}", f_a, p_a, df_a, ss_a),
-                        format!("Factor B: {}", f2),
-                        format!("  F={:.4}, p={:.4}, df={}, SS={:.4}", f_b, p_b, df_b, ss_b),
-                        format!("Interaction A:B"),
-                        format!("  F={:.4}, p={:.4}, df={}, SS={:.4}", f_axb, p_axb, df_axb, ss_axb),
-                        format!("Error"),
-                        format!("  df={}, SS={:.4}, MS={:.4}", df_error, ss_error, ms_error)
+                        format!("Factor A ({}): F={:.4}, p={:.4} ({})", f1, f_a, p_a, interpret(p_a)),
+                        format!("Factor B ({}): F={:.4}, p={:.4} ({})", f2, f_b, p_b, interpret(p_b)),
+                        format!("Interaction: F={:.4}, p={:.4} ({})", f_axb, p_axb, interpret(p_axb)),
                     ]));
                      
+                     set_interpretation.set(format!(
+                        "【解釈の補助】\n要因「{}」の主効果は{} (p={:.3})。\n要因「{}」の主効果は{} (p={:.3})。\n交互作用は{} (p={:.3})。",
+                         f1, interpret(p_a), p_a,
+                         f2, interpret(p_b), p_b,
+                         interpret(p_axb), p_axb
+                    ));
+
+                    // Visualization: Grouped Bar Chart
+                    // X axis: Factor A, Colors: Factor B
+                    let levels_a: Vec<_> = f1_data.iter().collect::<HashSet<_>>().into_iter().collect();
+                    let levels_b: Vec<_> = f2_data.iter().collect::<HashSet<_>>().into_iter().collect();
+                    let mut traces = vec![];
+                    
+                    for lb in levels_b {
+                        let mut x_vals = vec![];
+                        let mut y_vals = vec![];
+                        for la in &levels_a {
+                             // Calculate mean for combination (la, lb)
+                             let mut sum = 0.0;
+                             let mut count = 0;
+                             for i in 0..n {
+                                 if &f1_data[i] == *la && &f2_data[i] == lb {
+                                     sum += y_data[i];
+                                     count += 1;
+                                 }
+                             }
+                             if count > 0 {
+                                 x_vals.push(la.to_string());
+                                 y_vals.push(sum / count as f64);
+                             }
+                        }
+                        traces.push(json!({
+                            "type": "bar",
+                            "name": lb,
+                            "x": x_vals,
+                            "y": y_vals
+                        }));
+                    }
+                    
+                    let layout_plot = json!({
+                        "title": "Grouped Means",
+                         "barmode": "group",
+                         "xaxis": { "title": f1 },
+                         "yaxis": { "title": target }
+                    });
+                     draw_plot(serde_json::Value::Array(traces), layout_plot);
+
                  } else {
                       set_result_summary.set(Some(vec!["Error fitting OLS models for Two-Way".to_string()]));
                  }
@@ -328,6 +359,9 @@ pub fn AnovaUnified() -> impl IntoView {
                 <div class="section-icon"><i class="fas fa-layer-group"></i></div>
                 "分散分析 (統合版)"
             </h2>
+             <div class="description-box">
+                <p>"※ 注: 二要因分散分析は Type II Sum of Squares アルゴリズムを使用しています。SPSSのデフォルト(Type III)とは異なる場合があります。"</p>
+            </div>
             
              <div class="control-panel">
                 <div class="radio-group">
@@ -388,6 +422,19 @@ pub fn AnovaUnified() -> impl IntoView {
                         </ul>
                     </div>
                 })}
+                
+                 {move || if !interpretation.get().is_empty() {
+                    view! {
+                         <div class="interpretation-box" style="margin-top: 20px; padding: 15px; background-color: #f9f9f9; border-left: 5px solid #007bff;">
+                             <h4 style="margin-top: 0;">"解釈の補助"</h4>
+                             <p style="white-space: pre-wrap;">{interpretation.get()}</p>
+                         </div>
+                    }.into_view()
+                } else {
+                    view! { <div/> }.into_view()
+                }}
+
+                <div id=plot_id style="width: 100%; height: 400px; margin-top: 20px;"></div>
             </div>
         </div>
     }

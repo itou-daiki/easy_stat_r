@@ -2,6 +2,7 @@ use leptos::*;
 use crate::state::AppData;
 use nalgebra::{DMatrix, DVector, SymmetricEigen};
 use std::collections::HashSet;
+use serde_json::json;
 
 #[component]
 pub fn FactorAnalysis() -> impl IntoView {
@@ -9,9 +10,11 @@ pub fn FactorAnalysis() -> impl IntoView {
 
     // UI State
     let (target_cols, set_target_cols) = create_signal(HashSet::<String>::new());
-    let (n_factors, set_n_factors) = create_signal(2); // Default to 2 factors
-    let (do_rotation, set_do_rotation) = create_signal(true); // Default Varimax
+    let (n_factors, set_n_factors) = create_signal(2); 
+    let (do_rotation, set_do_rotation) = create_signal(true); 
     let (result_summary, set_result_summary) = create_signal(Option::<Vec<String>>::None);
+
+    let plot_id = "fa_scree_plot";
 
      let columns = create_memo(move |_| {
         if let Some(df) = app_data.df.get() {
@@ -20,6 +23,15 @@ pub fn FactorAnalysis() -> impl IntoView {
             vec![]
         }
     });
+
+    let draw_plot = move |data: serde_json::Value, layout: serde_json::Value| {
+        #[cfg(target_arch = "wasm32")]
+        {
+             let d_str = data.to_string();
+             let l_str = layout.to_string();
+             let _ = js_sys::eval(&format!("window.drawPlot('{}', '{}', '{}')", plot_id, d_str, l_str));
+        }
+    };
 
      let toggle_col = move |col: String| {
         set_target_cols.update(|cols| {
@@ -31,42 +43,17 @@ pub fn FactorAnalysis() -> impl IntoView {
         });
     };
 
-    // Varimax Rotation Helper
-    // maximizing sum of variances of squared loadings
     fn varimax(loadings: &DMatrix<f64>, max_iter: usize, tol: f64) -> DMatrix<f64> {
         let (p, k) = loadings.shape();
         let mut r = DMatrix::identity(k, k);
         let mut d = 0.0;
         
-        
         for _ in 0..max_iter {
             let d_old = d;
-            
-            // Lambda = Loadings * R
             let lambda = loadings * &r;
-            
-            // Transform logic: standard varimax Kaiser normalization usually done? 
-            // Simplified "raw" varimax:
-            // U, S, V = SVD of (Lambda^3 - Lambda * diag(sum(Lambda^2)/p))' * Lambda
-            
-            // Let's implement simpler gradient-like approach or standard Procrustes-like step
-            // Reference: "The varimax criterion for analytic rotation in factor analysis" (Kaiser 1958)
-            // Or use the simplified matrix iteration:
-            // A = Lambda
-            // B = A .^ 3 - A * diag(sum(sq, 0)/p)
-            // U, S, V = SVD(A' B)
-            // R = U * V'
-            
-            // nalgebra SVD
             let lambda_sq = lambda.map(|x| x*x);
-             // nalgebra: sum_rows -> DVector (col vector of sums of each row).
-             // sum_columns -> RowDVector.
-             let c_sums = lambda_sq.column_sum(); // 1 x k
-             
+             let c_sums = lambda_sq.column_sum();
              let alpha = c_sums.map(|x| x / p as f64);
-             
-             // Construct A * diag(...)
-             // Multiply each column j by alpha[j]
              let mut term2 = lambda.clone();
              for j in 0..k {
                  let s = alpha[j];
@@ -74,26 +61,20 @@ pub fn FactorAnalysis() -> impl IntoView {
                      term2[(i,j)] *= s;
                  }
              }
-             
              let b = lambda.map(|x| x.powi(3)) - term2;
-             
              let m = loadings.transpose() * b;
-             
              let svd = m.svd(true, true);
              if let (Some(u), Some(v_t)) = (svd.u, svd.v_t) {
-                 // R_new = U * V'
                  let r_new = u * v_t;
-                 d = svd.singular_values.sum(); // Trace of singular values? No, simple convergence check
+                 d = svd.singular_values.sum(); 
                  r = r_new;
              } else {
                  break; 
              }
-             
              if (d - d_old).abs() < tol {
                  break;
              }
         }
-        
         loadings * r
     }
 
@@ -111,7 +92,6 @@ pub fn FactorAnalysis() -> impl IntoView {
              return;
         }
 
-        // Data prep (Correlation Matrix) - reused from PCA logic essentially
         let n_vars = cols_vec.len();
         let mut col_vecs = vec![];
         let mut n_samples = 0;
@@ -125,7 +105,6 @@ pub fn FactorAnalysis() -> impl IntoView {
             } else { return; }
         }
         
-         // Standardize
         let mut z_cols = vec![];
         for v in col_vecs {
             let mean = v.iter().sum::<f64>() / n_samples as f64;
@@ -139,25 +118,53 @@ pub fn FactorAnalysis() -> impl IntoView {
             z_cols.push(z);
         }
         
-        // Corr Matrix
         let mut flat_z = vec![]; 
         for z in &z_cols { flat_z.extend(z.iter().cloned()); }
         let z_mat = DMatrix::from_vec(n_samples, n_vars, flat_z);
         let r_mat = (z_mat.transpose() * &z_mat) / (n_samples - 1) as f64;
         
-        // Eigen Decomp (Principal Component Method)
+        // Eigen Decomp
         let eig = SymmetricEigen::new(r_mat);
         let mut pairs: Vec<(f64, DVector<f64>)> = eig.eigenvalues.iter().zip(eig.eigenvectors.column_iter())
             .map(|(val, vec)| (*val, vec.into_owned()))
             .collect();
         pairs.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap());
         
-        // Extract top K factors
-        // Unrotated Matrix L = V * sqrt(Lambda)
+        // Scree Plot
+        let eigen_vals: Vec<f64> = pairs.iter().map(|p| p.0).collect();
+        let x_axis: Vec<usize> = (1..=n_vars).collect();
+        
+        let data_plot = json!([
+             {
+                "x": x_axis,
+                "y": eigen_vals,
+                "mode": "lines+markers",
+                "type": "scatter",
+                "name": "Eigenvalues",
+                "marker": { "color": "#d62728" }
+            },
+            {
+                 "x": [1, n_vars],
+                 "y": [1, 1],
+                 "mode": "lines",
+                 "type": "scatter",
+                 "name": "Eigenvalue=1",
+                 "line": { "dash": "dash", "color": "gray" }
+            }
+        ]);
+        let layout_plot = json!({
+            "title": "Scree Plot",
+            "xaxis": { "title": "Component Number" },
+            "yaxis": { "title": "Eigenvalue" },
+             "margin": { "t": 40, "b": 40, "l": 50, "r": 20 }
+        });
+        draw_plot(data_plot, layout_plot);
+
+        // Extract top K
         let mut l_data = vec![];
         for j in 0..k_factors {
             let (val, vec) = &pairs[j];
-            if *val <= 0.0 { continue; } // Handle error
+            if *val <= 0.0 { continue; } 
             let scaled_vec = vec * val.sqrt();
             l_data.extend(scaled_vec.iter().cloned());
         }
@@ -167,7 +174,6 @@ pub fn FactorAnalysis() -> impl IntoView {
              return;
         }
         
-        // L is n_vars x k_factors. DMatrix::from_vec uses column-major.
         let l_unrotated = DMatrix::from_vec(n_vars, k_factors, l_data);
         
         let final_loadings = if do_rotation.get() {
@@ -253,6 +259,8 @@ pub fn FactorAnalysis() -> impl IntoView {
                         </ul>
                     </div>
                 })}
+                
+                 <div id=plot_id style="width: 100%; height: 400px; margin-top: 20px;"></div>
             </div>
         </div>
     }

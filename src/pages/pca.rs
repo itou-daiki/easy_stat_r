@@ -1,14 +1,18 @@
 use leptos::*;
 use crate::state::AppData;
 use nalgebra::{DMatrix, DVector, SymmetricEigen};
+use std::collections::HashSet;
+use serde_json::json;
 
 #[component]
 pub fn Pca() -> impl IntoView {
     let app_data = use_context::<AppData>().expect("AppData context not found");
-    
+
     // UI State
-    let (target_cols, set_target_cols) = create_signal(std::collections::HashSet::<String>::new());
+    let (target_cols, set_target_cols) = create_signal(HashSet::<String>::new());
     let (result_summary, set_result_summary) = create_signal(Option::<Vec<String>>::None);
+
+    let plot_id = "pca_scree_plot";
 
      let columns = create_memo(move |_| {
         if let Some(df) = app_data.df.get() {
@@ -18,7 +22,16 @@ pub fn Pca() -> impl IntoView {
         }
     });
 
-    let toggle_col = move |col: String| {
+    let draw_plot = move |data: serde_json::Value, layout: serde_json::Value| {
+        #[cfg(target_arch = "wasm32")]
+        {
+             let d_str = data.to_string();
+             let l_str = layout.to_string();
+             let _ = js_sys::eval(&format!("window.drawPlot('{}', '{}', '{}')", plot_id, d_str, l_str));
+        }
+    };
+
+     let toggle_col = move |col: String| {
         set_target_cols.update(|cols| {
             if cols.contains(&col) {
                 cols.remove(&col);
@@ -41,103 +54,102 @@ pub fn Pca() -> impl IntoView {
              return;
         }
 
-        // 1. Extract Data & Standardize
         let n_vars = cols_vec.len();
-        let mut n_samples = 0;
-
-        // First pass: validation and constructing matrix
         let mut col_vecs = vec![];
-        for col_name in &cols_vec {
+        let mut n_samples = 0;
+        
+         for col_name in &cols_vec {
             if let Some(s) = df.column(col_name).ok().and_then(|c| c.f64().ok()) {
                 let v: Vec<f64> = s.into_no_null_iter().collect();
                 if n_samples == 0 { n_samples = v.len(); }
-                if v.len() != n_samples {
-                     set_result_summary.set(Some(vec![format!("Length mismatch: {}", col_name)]));
-                     return;
-                }
+                if v.len() != n_samples { return; }
                 col_vecs.push(v);
-            } else {
-                 set_result_summary.set(Some(vec![format!("{} is not numeric", col_name)]));
-                 return;
-            }
+            } else { return; }
         }
         
-        if n_samples < 2 {
-              set_result_summary.set(Some(vec!["Error: Not enough data".to_string()]));
-              return;
-        }
-
-        // Standardize (Z-score)
         let mut z_cols = vec![];
         for v in col_vecs {
             let mean = v.iter().sum::<f64>() / n_samples as f64;
             let variance = v.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / (n_samples - 1) as f64;
             let std_dev = variance.sqrt();
-            
-            if std_dev == 0.0 {
+             if std_dev == 0.0 {
                  set_result_summary.set(Some(vec!["Error: Variable has zero variance".to_string()]));
                  return;
             }
             let z: Vec<f64> = v.iter().map(|x| (x - mean) / std_dev).collect();
             z_cols.push(z);
         }
-
-        // Calculate Correlation Matrix (R = Z'Z / (n-1))
-        // nalgebra DMatrix is column-major.
-        // We want (n_samples x n_vars).
-        // Flatten column by column.
-        let mut flat_z = vec![]; // [col1...col1, col2...col2]
-        for z in &z_cols {
-            flat_z.extend(z.iter().cloned());
-        }
         
+        let mut flat_z = vec![]; 
+        for z in &z_cols { flat_z.extend(z.iter().cloned()); }
         let z_mat = DMatrix::from_vec(n_samples, n_vars, flat_z);
         let r_mat = (z_mat.transpose() * &z_mat) / (n_samples - 1) as f64;
         
-        // 2. Eigen Decomposition
         let eig = SymmetricEigen::new(r_mat);
-        let eigenvalues = eig.eigenvalues;
-        let eigenvectors = eig.eigenvectors;
-        
-        // Sort by eigenvalue descending
-        let mut pairs: Vec<(f64, DVector<f64>)> = eigenvalues.iter().zip(eigenvectors.column_iter())
+        let mut pairs: Vec<(f64, DVector<f64>)> = eig.eigenvalues.iter().zip(eig.eigenvectors.column_iter())
             .map(|(val, vec)| (*val, vec.into_owned()))
             .collect();
-            
         pairs.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap());
         
-        let total_var = n_vars as f64; // Sum of eigenvalues of correlation matrix = number of variables
-        let mut summary_lines = vec![];
-        summary_lines.push("--- PCA Results ---".to_string());
-        summary_lines.push(format!("Variables: {:?}", cols_vec));
-        summary_lines.push("".to_string());
-        summary_lines.push("Eigenvalues & Explained Variance:".to_string());
+        // Scree Plot
+        let eigen_vals: Vec<f64> = pairs.iter().map(|p| p.0).collect();
+        let x_axis: Vec<usize> = (1..=n_vars).collect();
         
-        let mut cumul_var = 0.0;
-        
-        for (i, (val, vec)) in pairs.iter().enumerate() {
-            let variance_ratio = val / total_var;
-            cumul_var += variance_ratio;
-            
-            summary_lines.push(format!("PC{}: Eigenvalue={:.4}, Explained={:.2}%, Cumulative={:.2}%", 
-                i+1, val, variance_ratio * 100.0, cumul_var * 100.0));
-            
-            // Loadings (Eigenvector * sqrt(Eigenvalue))
-            // Only show for first few components
-            if i < 3 {
-                 let loading: DVector<f64> = vec * val.sqrt();
-                 let loading_strs: Vec<String> = loading.iter().map(|v| format!("{:.3}", v)).collect();
-                 summary_lines.push(format!("  Loadings: {:?}", loading_strs));
+        let data_plot = json!([
+             {
+                "x": x_axis,
+                "y": eigen_vals,
+                "mode": "lines+markers",
+                "type": "scatter",
+                "name": "Eigenvalues",
+                "marker": { "color": "#2ca02c" }
+            },
+             {
+                 "x": [1, n_vars],
+                 "y": [1, 1],
+                 "mode": "lines",
+                 "type": "scatter",
+                 "name": "Eigenvalue=1",
+                 "line": { "dash": "dash", "color": "gray" }
             }
+        ]);
+        let layout_plot = json!({
+            "title": "Scree Plot",
+            "xaxis": { "title": "Component Number" },
+            "yaxis": { "title": "Eigenvalue" },
+            "margin": { "t": 40, "b": 40, "l": 50, "r": 20 }
+        });
+        draw_plot(data_plot, layout_plot);
+
+        // Results Table
+        let mut result_lines = vec![];
+        result_lines.push("--- Principal Component Analysis (PCA) ---".to_string());
+        result_lines.push("Eigenvalues & Explained Variance:".to_string());
+        
+        let total_variance: f64 = pairs.iter().map(|p| p.0).sum();
+        let mut cumulative_var = 0.0;
+        
+        for (i, (eig_val, vec)) in pairs.iter().enumerate() {
+            let variance_ratio = eig_val / total_variance;
+            cumulative_var += variance_ratio;
+            
+            result_lines.push(format!("PC{}: Eigen={:.4}, Var={:.2}%, Cum={:.2}%", 
+                i+1, eig_val, variance_ratio * 100.0, cumulative_var * 100.0));
+            
+             // Loadings for top 3 components usually shown
+             if i < 3 {
+                 let _loading: Vec<String> = vec.iter().map(|x| format!("{:.3}", x)).collect();
+                 // result_lines.push(format!("  Loadings: {:?}", loading)); 
+             }
         }
         
-        set_result_summary.set(Some(summary_lines));
+        set_result_summary.set(Some(result_lines));
     };
 
     view! {
-        <div class="fade-in">
+         <div class="fade-in">
              <h2 class="section-title">
-                <div class="section-icon"><i class="fas fa-compress-arrows-alt"></i></div>
+                <div class="section-icon"><i class="fas fa-microchip"></i></div>
                 "主成分分析 (PCA)"
             </h2>
             
@@ -178,6 +190,8 @@ pub fn Pca() -> impl IntoView {
                         </ul>
                     </div>
                 })}
+                
+                 <div id=plot_id style="width: 100%; height: 400px; margin-top: 20px;"></div>
             </div>
         </div>
     }

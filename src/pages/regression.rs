@@ -3,6 +3,7 @@ use crate::state::AppData;
 use nalgebra::{DMatrix, DVector};
 use statrs::distribution::{FisherSnedecor, StudentsT, ContinuousCDF};
 use std::collections::HashSet;
+use serde_json::json;
 
 #[component]
 pub fn Regression() -> impl IntoView {
@@ -13,6 +14,9 @@ pub fn Regression() -> impl IntoView {
     let (explanatory_cols, set_explanatory_cols) = create_signal(HashSet::<String>::new());
     let (result_summary, set_result_summary) = create_signal(Option::<Vec<String>>::None);
     let (formula_display, set_formula_display) = create_signal(String::new());
+    let (interpretation, set_interpretation) = create_signal(String::new());
+    
+    let plot_id = "regression_plot";
 
     // Available columns
     let columns = create_memo(move |_| {
@@ -22,6 +26,16 @@ pub fn Regression() -> impl IntoView {
             vec![]
         }
     });
+
+    // Helper: Draw Plot
+    let draw_plot = move |data: serde_json::Value, layout: serde_json::Value| {
+        #[cfg(target_arch = "wasm32")]
+        {
+             let d_str = data.to_string();
+             let l_str = layout.to_string();
+             let _ = js_sys::eval(&format!("window.drawPlot('{}', '{}', '{}')", plot_id, d_str, l_str));
+        }
+    };
 
     // Toggle explanatory variable
     let toggle_explanatory = move |col: String| {
@@ -44,13 +58,15 @@ pub fn Regression() -> impl IntoView {
         let expl_set = explanatory_cols.get();
         let expl_vec: Vec<String> = expl_set.into_iter().collect();
         
+        set_interpretation.set(String::new());
+        set_result_summary.set(None);
+
         if target.is_empty() || expl_vec.is_empty() {
             set_result_summary.set(Some(vec!["Error: Select target and at least one explanatory variable.".to_string()]));
             return;
         }
 
         // 1. Data Extraction
-        // Target Y
         let y_res = df.column(&target).ok().and_then(|c| c.f64().ok()).map(|s| s.into_no_null_iter().collect::<Vec<f64>>());
         if y_res.is_none() {
              set_result_summary.set(Some(vec!["Error extracting target variable (must be numeric)".to_string()]));
@@ -60,10 +76,7 @@ pub fn Regression() -> impl IntoView {
         let n = y_data.len();
         let y_dvec = DVector::from_vec(y_data.clone());
 
-        // Explanatory X
-        // We need to construct Design Matrix X: [1, x1, x2...]
         let mut x_data_flat = vec![];
-        // Intercept column
         let mut intercept = vec![1.0; n];
         x_data_flat.append(&mut intercept);
         
@@ -84,8 +97,8 @@ pub fn Regression() -> impl IntoView {
              }
         }
         
-        let k = valid_expl_names.len(); // number of predictors (excluding intercept)
-        let p = k + 1; // total parameters (including intercept)
+        let k = valid_expl_names.len(); // number of predictors
+        let p = k + 1; // params
         
         if n <= p {
              set_result_summary.set(Some(vec!["Error: Not enough data points (n <= k + 1)".to_string()]));
@@ -95,35 +108,27 @@ pub fn Regression() -> impl IntoView {
         let x_mat = DMatrix::from_vec(n, p, x_data_flat);
 
         // 2. OLS Solver
-        // beta = (X'X)^-1 X'Y
         let xt = x_mat.transpose();
         let xtx = &xt * &x_mat;
         let xty = &xt * &y_dvec;
 
-        // Invert X'X
-        // Use Cholesky or LU. If fails -> Multicollinearity
-        let xtx_inv_opt = xtx.try_inverse(); // nalgebra try_inverse uses LU
+        let xtx_inv_opt = xtx.try_inverse();
         
         if let Some(xtx_inv) = xtx_inv_opt {
             let beta = &xtx_inv * xty;
             
             // 3. Statistics
-            let y_pred = &x_mat * &beta;
-            let residuals = &y_dvec - &y_pred;
+            let y_predd = &x_mat * &beta;
+            let y_pred_vec: Vec<f64> = y_predd.iter().cloned().collect();
+            let residuals = &y_dvec - &y_predd;
             let sse = residuals.dot(&residuals);
             
-            // SST (Total Sum of Squares)
             let y_mean = y_data.iter().sum::<f64>() / n as f64;
             let sst: f64 = y_data.iter().map(|val| (val - y_mean).powi(2)).sum();
             
-            // R-squared
             let r2 = 1.0 - (sse / sst);
-            // Adj R-squared
             let adj_r2 = 1.0 - (1.0 - r2) * ((n - 1) as f64 / (n - p) as f64);
             
-            // F-test
-            // MSM = (SST - SSE) / k
-            // MSE = SSE / (n - p)
             let msm = (sst - sse) / k as f64;
             let mse = sse / (n - p) as f64;
             let f_val = msm / mse;
@@ -131,22 +136,20 @@ pub fn Regression() -> impl IntoView {
             let f_dist = FisherSnedecor::new(k as f64, (n - p) as f64).unwrap();
             let p_val_f = 1.0 - f_dist.cdf(f_val);
             
-            // Standard Errors for Coefficients
-            // Var(beta) = MSE * (X'X)^-1
-            // SE(beta_j) = sqrt(Var(beta)_jj)
             let var_beta = xtx_inv.scale(mse);
             
             let mut result_lines = vec![];
             result_lines.push(format!("--- Regression Results (Y: {}) ---", target));
             result_lines.push(format!("R²: {:.4}", r2));
             result_lines.push(format!("Adj R²: {:.4}", adj_r2));
-            result_lines.push(format!("F({:.0}, {:.0}): {:.4}, p={:.4e}", k, n-p, f_val, p_val_f));
+             result_lines.push(format!("F({:.0}, {:.0}): {:.4}, p={:.4e}", k, n-p, f_val, p_val_f));
             result_lines.push("".to_string());
             result_lines.push("Coefficients:".to_string());
             
             let t_dist = StudentsT::new(0.0, 1.0, (n - p) as f64).unwrap();
 
             let mut formula_str = format!("{} = {:.4}", target, beta[0]);
+            let mut significant_vars = vec![];
 
             // Intercept
             let se_intercept = var_beta[(0,0)].sqrt();
@@ -163,6 +166,8 @@ pub fn Regression() -> impl IntoView {
                 let p = 2.0 * (1.0 - t_dist.cdf(t.abs()));
                 let sig = if p < 0.01 { "**" } else if p < 0.05 { "*" } else { "" };
                 
+                if p < 0.05 { significant_vars.push(name.clone()); }
+
                 result_lines.push(format!("{}: Coef={:.4}, SE={:.4}, t={:.4}, p={:.4} {}", name, val, se, t, p, sig));
                 
                 let sign = if val >= 0.0 { "+" } else { "-" };
@@ -171,6 +176,48 @@ pub fn Regression() -> impl IntoView {
             
             set_formula_display.set(formula_str);
             set_result_summary.set(Some(result_lines));
+            
+            // Interpretation
+            let mut interp = format!("【解釈の補助】\n決定係数(R²)は{:.4}であり、", r2);
+            if r2 > 0.5 {
+                 interp.push_str("モデルの当てはまりは良好です。\n");
+            } else {
+                 interp.push_str("モデルの当てはまりはそれほど高くありません。\n");
+            }
+            if !significant_vars.is_empty() {
+                interp.push_str(&format!("以下の変数が目的変数「{}」に有意な影響を与えています: {}.", target, significant_vars.join(", ")));
+            } else {
+                 interp.push_str("有意な影響を与える説明変数は見つかりませんでした。");
+            }
+            set_interpretation.set(interp);
+
+            // Visualization: Scatter Plot (Y vs Predicted)
+            let data_plot = json!([
+                 {
+                    "x": y_pred_vec,
+                    "y": y_data,
+                    "mode": "markers",
+                    "type": "scatter",
+                    "name": "Data",
+                    "marker": { "color": "#1f77b4" }
+                },
+                {
+                    "x": [y_data.iter().cloned().fold(f64::INFINITY, f64::min), y_data.iter().cloned().fold(f64::NEG_INFINITY, f64::max)],
+                    "y": [y_data.iter().cloned().fold(f64::INFINITY, f64::min), y_data.iter().cloned().fold(f64::NEG_INFINITY, f64::max)],
+                    "mode": "lines",
+                    "type": "scatter",
+                    "name": "Ideal",
+                    "line": { "dash": "dash", "color": "gray" }
+                }
+            ]);
+            
+            let layout_plot = json!({
+                "title": "Observed vs Predicted",
+                "xaxis": { "title": "Predicted Values" },
+                "yaxis": { "title": "Observed Values" },
+                 "margin": { "t": 40, "b": 40, "l": 50, "r": 20 }
+            });
+            draw_plot(data_plot, layout_plot);
 
         } else {
              set_result_summary.set(Some(vec!["Error: Singular Matrix. Multicollinearity likely detected.".to_string()]));
@@ -240,6 +287,19 @@ pub fn Regression() -> impl IntoView {
                         </ul>
                     </div>
                 })}
+                
+                {move || if !interpretation.get().is_empty() {
+                    view! {
+                         <div class="interpretation-box" style="margin-top: 20px; padding: 15px; background-color: #f9f9f9; border-left: 5px solid #007bff;">
+                             <h4 style="margin-top: 0;">"解釈の補助"</h4>
+                             <p style="white-space: pre-wrap;">{interpretation.get()}</p>
+                         </div>
+                    }.into_view()
+                } else {
+                    view! { <div/> }.into_view()
+                }}
+                
+                 <div id=plot_id style="width: 100%; height: 400px; margin-top: 20px;"></div>
             </div>
         </div>
     }
