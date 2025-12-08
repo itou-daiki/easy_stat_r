@@ -1,6 +1,6 @@
 use leptos::*;
 use crate::state::AppData;
-use nalgebra::{DMatrix, DVector, RowDVector, SymmetricEigen};
+use nalgebra::{DMatrix, DVector, SymmetricEigen};
 use std::collections::HashSet;
 
 #[component]

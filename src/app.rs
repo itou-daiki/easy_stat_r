@@ -15,7 +15,8 @@ use crate::pages::{
     anova_unified::AnovaUnified,
     regression::Regression,
     pca::Pca,
-    factor_analysis::FactorAnalysis
+    factor_analysis::FactorAnalysis,
+    text_mining::TextMining
 };
 
 #[component]
@@ -56,6 +57,7 @@ pub fn App() -> impl IntoView {
                             <Route path="/regression" view=Regression />
                             <Route path="/pca" view=Pca />
                             <Route path="/factor_analysis" view=FactorAnalysis />
+                            <Route path="/text_mining" view=TextMining />
                         </Routes>
 
                         <Footer/>

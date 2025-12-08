@@ -600,6 +600,8 @@ dependencies = [
  "nalgebra 0.33.2",
  "plotly",
  "polars",
+ "serde",
+ "serde_json",
  "statrs",
  "wasm-bindgen",
  "wasm-logger",

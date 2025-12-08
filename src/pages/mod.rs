@@ -7,3 +7,4 @@ pub mod anova_unified;
 pub mod regression;
 pub mod pca;
 pub mod factor_analysis;
+pub mod text_mining;

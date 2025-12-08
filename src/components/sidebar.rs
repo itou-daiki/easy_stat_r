@@ -61,6 +61,11 @@ pub fn Sidebar() -> impl IntoView {
                             <i class="fas fa-project-diagram" style="width: 24px;"></i> "因子分析"
                         </A>
                     </li>
+                     <li style="margin-bottom: 0.5rem;">
+                        <A href="/text_mining" class="nav-link" active_class="active">
+                            <i class="fas fa-comments" style="width: 24px;"></i> "テキストマイニング"
+                        </A>
+                    </li>
                     // Add more dummy links based on feature list
                 </ul>
             </nav>

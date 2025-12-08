@@ -1,19 +1,79 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>easyStat</title>
-    
+
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
+
     <!-- Custom Style -->
     <link rel="stylesheet" href="assets/style.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.5/d3.layout.cloud.min.js"></script>
+    <script>
+        // JS Interop function for Word Cloud
+        window.drawWordCloud = function (wordsJson) {
+            const words = JSON.parse(wordsJson);
+            const width = 800;
+            const height = 400;
+
+            // Clear previous
+            d3.select("#word-cloud-container").selectAll("*").remove();
+
+            const layout = d3.layout.cloud()
+                .size([width, height])
+                .words(words.map(function (d) {
+                    return { text: d.text, size: 10 + d.count * 5 }; // Scale size
+                }))
+                .padding(5)
+                .rotate(function () { return ~~(Math.random() * 2) * 90; })
+                .font("sans-serif")
+                .fontSize(function (d) { return d.size; })
+                .on("end", draw);
+
+            layout.start();
+
+            function draw(words) {
+                d3.select("#word-cloud-container").append("svg")
+                    .attr("width", layout.size()[0])
+                    .attr("height", layout.size()[1])
+                    .append("g")
+                    .attr("transform", "translate(" + layout.size()[0] / 2 + "," + layout.size()[1] / 2 + ")")
+                    .selectAll("text")
+                    .data(words)
+                    .enter().append("text")
+                    .style("font-size", function (d) { return d.size + "px"; })
+                    .style("font-family", "sans-serif")
+                    .style("fill", function (d, i) { return d3.schemeCategory10[i % 10]; })
+                    .attr("text-anchor", "middle")
+                    .attr("transform", function (d) {
+                        return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+                    })
+                    .text(function (d) { return d.text; });
+            }
+        };
+
+        // JS Interop for Tokenization (Intl.Segmenter)
+        window.segmentText = function (text) {
+            const segmenter = new Intl.Segmenter("ja", { granularity: "word" });
+            const segments = [];
+            for (const { segment, isWordLike } of segmenter.segment(text)) {
+                if (isWordLike) {
+                    segments.push(segment);
+                }
+            }
+            return JSON.stringify(segments);
+        };
+    </script>
 </head>
+
 <body>
 </body>
+
 </html>
