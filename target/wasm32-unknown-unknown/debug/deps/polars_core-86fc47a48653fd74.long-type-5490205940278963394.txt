@@ -1,0 +1,3 @@
+hashbrown::HashMap<K, V, S, A>
+hashbrown::HashMap<chunked_array::builder::list::categorical::KeyWrapper, (), ahash::RandomState>
+hashbrown::HashMap<logical::categorical::builder::KeyWrapper, (), ahash::RandomState>

@@ -1,0 +1,11 @@
+/Users/itoudaiki/Program/easy_stat_r/target/wasm32-unknown-unknown/debug/deps/serde_test-95a4b99ffb3f1c2e.d: /Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_test-1.0.177/src/lib.rs /Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_test-1.0.177/src/assert.rs /Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_test-1.0.177/src/configure.rs /Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_test-1.0.177/src/de.rs /Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_test-1.0.177/src/error.rs /Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_test-1.0.177/src/ser.rs /Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_test-1.0.177/src/token.rs
+
+/Users/itoudaiki/Program/easy_stat_r/target/wasm32-unknown-unknown/debug/deps/libserde_test-95a4b99ffb3f1c2e.rmeta: /Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_test-1.0.177/src/lib.rs /Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_test-1.0.177/src/assert.rs /Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_test-1.0.177/src/configure.rs /Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_test-1.0.177/src/de.rs /Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_test-1.0.177/src/error.rs /Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_test-1.0.177/src/ser.rs /Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_test-1.0.177/src/token.rs
+
+/Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_test-1.0.177/src/lib.rs:
+/Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_test-1.0.177/src/assert.rs:
+/Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_test-1.0.177/src/configure.rs:
+/Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_test-1.0.177/src/de.rs:
+/Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_test-1.0.177/src/error.rs:
+/Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_test-1.0.177/src/ser.rs:
+/Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_test-1.0.177/src/token.rs:

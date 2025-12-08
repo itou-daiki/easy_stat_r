@@ -1,0 +1,10 @@
+/Users/itoudaiki/Program/easy_stat_r/target/wasm32-unknown-unknown/debug/deps/serde_qs-48b4765bb462391d.d: /Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_qs-0.12.0/src/lib.rs /Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_qs-0.12.0/src/de/mod.rs /Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_qs-0.12.0/src/de/parse.rs /Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_qs-0.12.0/src/error.rs /Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_qs-0.12.0/src/ser.rs /Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_qs-0.12.0/src/utils.rs
+
+/Users/itoudaiki/Program/easy_stat_r/target/wasm32-unknown-unknown/debug/deps/libserde_qs-48b4765bb462391d.rmeta: /Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_qs-0.12.0/src/lib.rs /Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_qs-0.12.0/src/de/mod.rs /Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_qs-0.12.0/src/de/parse.rs /Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_qs-0.12.0/src/error.rs /Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_qs-0.12.0/src/ser.rs /Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_qs-0.12.0/src/utils.rs
+
+/Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_qs-0.12.0/src/lib.rs:
+/Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_qs-0.12.0/src/de/mod.rs:
+/Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_qs-0.12.0/src/de/parse.rs:
+/Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_qs-0.12.0/src/error.rs:
+/Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_qs-0.12.0/src/ser.rs:
+/Users/itoudaiki/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_qs-0.12.0/src/utils.rs:
