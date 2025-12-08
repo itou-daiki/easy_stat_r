@@ -6,7 +6,14 @@ use crate::components::sidebar::Sidebar;
 use crate::components::guide::Guide;
 use crate::components::file_upload::FileUpload;
 use crate::state::AppData;
-use crate::pages::{data_cleaning::DataCleaning, eda::Eda, correlation::Correlation, chi_square::ChiSquare};
+use crate::pages::{
+    data_cleaning::DataCleaning, 
+    eda::Eda, 
+    correlation::Correlation, 
+    chi_square::ChiSquare,
+    t_test_unified::TTestUnified,
+    anova_unified::AnovaUnified
+};
 
 #[component]
 pub fn App() -> impl IntoView {
@@ -41,6 +48,8 @@ pub fn App() -> impl IntoView {
                             <Route path="/eda" view=Eda />
                             <Route path="/correlation" view=Correlation />
                             <Route path="/chi_square" view=ChiSquare />
+                            <Route path="/t_test" view=TTestUnified />
+                            <Route path="/anova" view=AnovaUnified />
                         </Routes>
 
                         <Footer/>

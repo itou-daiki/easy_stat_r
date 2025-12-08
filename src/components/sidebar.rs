@@ -36,6 +36,16 @@ pub fn Sidebar() -> impl IntoView {
                             <i class="fas fa-border-all" style="width: 24px;"></i> "カイ二乗検定"
                         </A>
                     </li>
+                     <li style="margin-bottom: 0.5rem;">
+                        <A href="/t_test" class="nav-link" active_class="active">
+                            <i class="fas fa-balance-scale" style="width: 24px;"></i> "t検定 (統合版)"
+                        </A>
+                    </li>
+                     <li style="margin-bottom: 0.5rem;">
+                        <A href="/anova" class="nav-link" active_class="active">
+                            <i class="fas fa-layer-group" style="width: 24px;"></i> "分散分析 (統合版)"
+                        </A>
+                    </li>
                     // Add more dummy links based on feature list
                 </ul>
             </nav>
