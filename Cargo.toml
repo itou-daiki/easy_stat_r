@@ -57,3 +57,10 @@ features = [
     "Window",
 ]
 
+
+[profile.release]
+opt-level = "z"  # Optimize for size
+lto = true       # Enable Link Time Optimization
+codegen-units = 1 # Reduce parallelism for better optimization and lower memory usage
+panic = "abort"   # Remove panic unwinding
+strip = true      # Strip symbols
