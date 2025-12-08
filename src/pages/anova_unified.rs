@@ -200,7 +200,7 @@ pub fn AnovaUnified() -> impl IntoView {
                             "type": "bar",
                             "x": x_vals,
                             "y": y_vals,
-                            "marker": { "color": "#1f77b4" }
+                            "marker": { "color": "#1e90ff" }
                         }
                     ]);
                     let layout_plot = json!({
@@ -425,7 +425,7 @@ pub fn AnovaUnified() -> impl IntoView {
                 
                  {move || if !interpretation.get().is_empty() {
                     view! {
-                         <div class="interpretation-box" style="margin-top: 20px; padding: 15px; background-color: #f9f9f9; border-left: 5px solid #007bff;">
+                         <div class="interpretation-box" style="margin-top: 20px; padding: 15px; background-color: #f9f9f9; border-left: 5px solid #1e90ff;">
                              <h4 style="margin-top: 0;">"解釈の補助"</h4>
                              <p style="white-space: pre-wrap;">{interpretation.get()}</p>
                          </div>

@@ -1,7 +1,7 @@
 /* CSS変数でテーマカラーを定義 */
 :root {
-    --primary-color: #6366f1;
-    --primary-dark: #4f46e5;
+    --primary-color: #1e90ff;
+    --primary-dark: #1060b0;
     --secondary-color: #8b5cf6;
     --accent-color: #ec4899;
     --background: #f8fafc;

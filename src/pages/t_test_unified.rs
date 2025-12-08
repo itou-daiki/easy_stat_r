@@ -186,7 +186,7 @@ pub fn TTestUnified() -> impl IntoView {
                                     "array": [se1, se2],
                                     "visible": true
                                 },
-                                "marker": { "color": ["#1f77b4", "#ff7f0e"] }
+                                "marker": { "color": ["#1e90ff", "#ff7f0e"] }
                             }
                         ]);
                         
@@ -356,7 +356,7 @@ pub fn TTestUnified() -> impl IntoView {
                 
                 {move || if !interpretation.get().is_empty() {
                     view! {
-                         <div class="interpretation-box" style="margin-top: 20px; padding: 15px; background-color: #f9f9f9; border-left: 5px solid #007bff;">
+                         <div class="interpretation-box" style="margin-top: 20px; padding: 15px; background-color: #f9f9f9; border-left: 5px solid #1e90ff;">
                              <h4 style="margin-top: 0;">"解釈の補助"</h4>
                              <p style="white-space: pre-wrap;">{interpretation.get()}</p>
                          </div>
