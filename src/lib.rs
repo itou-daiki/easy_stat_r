@@ -1,15 +1,10 @@
 use leptos::*;
 use wasm_bindgen::prelude::*;
 
-#[component]
-pub fn App() -> impl IntoView {
-    view! {
-        <div style="font-family: sans-serif; padding: 20px;">
-            <h1>"Easy Stat R"</h1>
-            <p>"Ready for statistical analysis in Wasm!"</p>
-        </div>
-    }
-}
+mod app;
+mod components;
+
+use app::App;
 
 #[wasm_bindgen(start)]
 pub fn start() {
