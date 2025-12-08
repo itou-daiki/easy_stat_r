@@ -1,7 +1,7 @@
 [build]
 target = "index.html"
 dist = "dist"
-public_url = "/easy_stat_r/"
+public_url = "/"
 
 [watch]
 ignore = ["./.git", "./target"]
