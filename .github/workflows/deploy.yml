@@ -1,12 +1,19 @@
 name: Deploy to GitHub Pages
 
 on:
+  # masterブランチへのプッシュ時に実行
   push:
     branches:
-      - master # masterブランチへのプッシュをトリガーに
+      - master
+
+# GITHUB_TOKENの権限を設定
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -19,11 +26,25 @@ jobs:
         run: cargo install --locked trunk
 
       - name: Build
-        # Trunk.tomlのpublic_urlを尊重しつつ、CIで明示的に指定
         run: trunk build --release --public-url /easy_stat_r/
+      
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist # デプロイするディレクトリ
+          # distディレクトリをアップロード
+          path: './dist'
+
+  deploy:
+    # buildジョブが完了してから実行
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
