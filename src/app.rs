@@ -26,7 +26,7 @@ pub fn App() -> impl IntoView {
     provide_context(app_data.clone());
 
     view! {
-        <Router>
+        <Router base="/easy_stat_r">
             <div style="display: flex;">
                 <Sidebar/>
                 <main style="margin-left: 250px; width: calc(100% - 250px); min-height: 100vh;">
