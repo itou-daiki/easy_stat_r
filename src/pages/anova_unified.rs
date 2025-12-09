@@ -82,7 +82,7 @@ pub fn AnovaUnified() -> impl IntoView {
         DMatrix::from_vec(rows, cols, mat_data)
     }
     
-    fn get_dummies(n: usize, data: &Vec<String>) -> (Vec<Vec<f64>>, Vec<&String>) {
+    fn get_dummies(_n: usize, data: &Vec<String>) -> (Vec<Vec<f64>>, Vec<&String>) {
          let mut unique: Vec<_> = data.iter().collect::<HashSet<_>>().into_iter().collect();
          unique.sort();
          let mut dummies = vec![];

@@ -25,7 +25,7 @@ pub fn FileUpload() -> impl IntoView {
                 let reader = FileReader::new().unwrap();
                 let reader_clone = reader.clone();
                 let file_name_clone = file_name.clone();
-                let app_data_clone = app_data.clone();
+
 
                 let on_load_handler = move |_: web_sys::Event| {
                     let result_js = reader_clone.result().unwrap();
