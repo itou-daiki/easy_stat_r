@@ -199,7 +199,7 @@ fn Home() -> impl IntoView {
                     "利用可能な分析機能"
                 </h2>
                 <div class="feature-grid">
-                     <A href="/data_cleaning" class="feature-card-link">
+                     <A href="data_cleaning" class="feature-card-link">
                         <div class="feature-card">
                             <h3 class="feature-card-title">
                                 <i class="fas fa-broom feature-card-icon"></i>
@@ -208,7 +208,7 @@ fn Home() -> impl IntoView {
                             <p class="feature-card-description">"データの前処理と品質向上"</p>
                         </div>
                     </A>
-                    <A href="/eda" class="feature-card-link">
+                    <A href="eda" class="feature-card-link">
                         <div class="feature-card">
                             <h3 class="feature-card-title">
                                 <i class="fas fa-search feature-card-icon"></i>
@@ -217,7 +217,7 @@ fn Home() -> impl IntoView {
                             <p class="feature-card-description">"データの特徴と傾向を視覚的に把握"</p>
                         </div>
                     </A>
-                    <A href="/correlation" class="feature-card-link">
+                    <A href="correlation" class="feature-card-link">
                         <div class="feature-card">
                             <h3 class="feature-card-title">
                                 <i class="fas fa-project-diagram feature-card-icon"></i>
@@ -226,7 +226,7 @@ fn Home() -> impl IntoView {
                             <p class="feature-card-description">"変数間の関係性を分析"</p>
                         </div>
                     </A>
-                     <A href="/chi_square" class="feature-card-link">
+                     <A href="chi_square" class="feature-card-link">
                         <div class="feature-card">
                             <h3 class="feature-card-title">
                                 <i class="fas fa-border-all feature-card-icon"></i>
@@ -235,7 +235,7 @@ fn Home() -> impl IntoView {
                             <p class="feature-card-description">"度数の偏りを分析"</p>
                         </div>
                     </A>
-                    <A href="/t_test" class="feature-card-link">
+                    <A href="t_test" class="feature-card-link">
                         <div class="feature-card">
                             <h3 class="feature-card-title">
                                 <i class="fas fa-balance-scale feature-card-icon"></i>
@@ -244,7 +244,7 @@ fn Home() -> impl IntoView {
                             <p class="feature-card-description">"2つのグループの平均値を比較"</p>
                         </div>
                     </A>
-                    <A href="/anova" class="feature-card-link">
+                    <A href="anova" class="feature-card-link">
                         <div class="feature-card">
                             <h3 class="feature-card-title">
                                 <i class="fas fa-layer-group feature-card-icon"></i>
@@ -253,7 +253,7 @@ fn Home() -> impl IntoView {
                             <p class="feature-card-description">"複数グループの平均値を比較"</p>
                         </div>
                     </A>
-                    <A href="/regression" class="feature-card-link">
+                    <A href="regression" class="feature-card-link">
                         <div class="feature-card">
                             <h3 class="feature-card-title">
                                 <i class="fas fa-chart-line feature-card-icon"></i>
@@ -262,7 +262,7 @@ fn Home() -> impl IntoView {
                             <p class="feature-card-description">"変数間の因果関係をモデル化"</p>
                         </div>
                     </A>
-                    <A href="/pca" class="feature-card-link">
+                    <A href="pca" class="feature-card-link">
                         <div class="feature-card">
                             <h3 class="feature-card-title">
                                 <i class="fas fa-compress-arrows-alt feature-card-icon"></i>
@@ -271,7 +271,7 @@ fn Home() -> impl IntoView {
                             <p class="feature-card-description">"データの次元を削減して可視化"</p>
                         </div>
                     </A>
-                    <A href="/factor_analysis" class="feature-card-link">
+                    <A href="factor_analysis" class="feature-card-link">
                         <div class="feature-card">
                             <h3 class="feature-card-title">
                                 <i class="fas fa-sitemap feature-card-icon"></i>
@@ -280,7 +280,7 @@ fn Home() -> impl IntoView {
                             <p class="feature-card-description">"潜在的な因子構造を探索"</p>
                         </div>
                     </A>
-                    <A href="/text_mining" class="feature-card-link">
+                    <A href="text_mining" class="feature-card-link">
                         <div class="feature-card">
                             <h3 class="feature-card-title">
                                 <i class="fas fa-comments feature-card-icon"></i>

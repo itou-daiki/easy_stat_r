@@ -12,57 +12,57 @@ pub fn Sidebar() -> impl IntoView {
             <nav>
                 <ul style="list-style: none; padding: 0;">
                     <li style="margin-bottom: 0.5rem;">
-                        <A href="/" exact=true class="nav-link" active_class="active">
+                        <A href="./" exact=true class="nav-link" active_class="active">
                             <i class="fas fa-home" style="width: 24px;"></i> "ホーム"
                         </A>
                     </li>
                     <li style="margin-bottom: 0.5rem;">
-                        <A href="/data_cleaning" class="nav-link" active_class="active">
+                        <A href="data_cleaning" class="nav-link" active_class="active">
                             <i class="fas fa-broom" style="width: 24px;"></i> "データクレンジング"
                         </A>
                     </li>
                      <li style="margin-bottom: 0.5rem;">
-                        <A href="/eda" class="nav-link" active_class="active">
+                        <A href="eda" class="nav-link" active_class="active">
                             <i class="fas fa-search" style="width: 24px;"></i> "EDA"
                         </A>
                     </li>
                      <li style="margin-bottom: 0.5rem;">
-                        <A href="/correlation" class="nav-link" active_class="active">
+                        <A href="correlation" class="nav-link" active_class="active">
                             <i class="fas fa-project-diagram" style="width: 24px;"></i> "相関分析"
                         </A>
                     </li>
                      <li style="margin-bottom: 0.5rem;">
-                        <A href="/chi_square" class="nav-link" active_class="active">
+                        <A href="chi_square" class="nav-link" active_class="active">
                             <i class="fas fa-border-all" style="width: 24px;"></i> "カイ二乗検定"
                         </A>
                     </li>
                      <li style="margin-bottom: 0.5rem;">
-                        <A href="/t_test" class="nav-link" active_class="active">
+                        <A href="t_test" class="nav-link" active_class="active">
                             <i class="fas fa-balance-scale" style="width: 24px;"></i> "t検定 (統合版)"
                         </A>
                     </li>
                      <li style="margin-bottom: 0.5rem;">
-                        <A href="/anova" class="nav-link" active_class="active">
+                        <A href="anova" class="nav-link" active_class="active">
                             <i class="fas fa-layer-group" style="width: 24px;"></i> "分散分析 (統合版)"
                         </A>
                     </li>
                      <li style="margin-bottom: 0.5rem;">
-                        <A href="/regression" class="nav-link" active_class="active">
+                        <A href="regression" class="nav-link" active_class="active">
                             <i class="fas fa-chart-line" style="width: 24px;"></i> "回帰分析 (統合版)"
                         </A>
                     </li>
                      <li style="margin-bottom: 0.5rem;">
-                        <A href="/pca" class="nav-link" active_class="active">
+                        <A href="pca" class="nav-link" active_class="active">
                             <i class="fas fa-compress-arrows-alt" style="width: 24px;"></i> "主成分分析"
                         </A>
                     </li>
                      <li style="margin-bottom: 0.5rem;">
-                        <A href="/factor_analysis" class="nav-link" active_class="active">
+                        <A href="factor_analysis" class="nav-link" active_class="active">
                             <i class="fas fa-project-diagram" style="width: 24px;"></i> "因子分析"
                         </A>
                     </li>
                      <li style="margin-bottom: 0.5rem;">
-                        <A href="/text_mining" class="nav-link" active_class="active">
+                        <A href="text_mining" class="nav-link" active_class="active">
                             <i class="fas fa-comments" style="width: 24px;"></i> "テキストマイニング"
                         </A>
                     </li>

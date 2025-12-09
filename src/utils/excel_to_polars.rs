@@ -51,7 +51,7 @@ pub fn convert_excel_to_df(bytes: &[u8]) -> Result<DataFrame> {
         .into_iter()
         .zip(columns_data.into_iter())
         .map(|(name, data)| {
-            Series::new(&name, data)
+            Series::from_any_values(&name, &data, false).unwrap()
         })
         .collect();
 
