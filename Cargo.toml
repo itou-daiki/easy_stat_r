@@ -64,3 +64,7 @@ lto = true       # Enable Link Time Optimization
 codegen-units = 1 # Reduce parallelism for better optimization and lower memory usage
 panic = "abort"   # Remove panic unwinding
 strip = true      # Strip symbols
+
+[[bin]]
+name = "easy_stat_r-server"
+path = "src/main.rs"
