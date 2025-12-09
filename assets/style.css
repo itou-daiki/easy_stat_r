@@ -338,3 +338,168 @@ body {
 .fade-in {
     animation: fadeIn 0.6s ease-out forwards;
 }
+
+/* 情報セクション */
+.info-section {
+    margin-top: 3rem;
+}
+
+/* 折りたたみセクション */
+.collapsible-section {
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.collapsible-section:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.collapsible-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    cursor: pointer;
+    background: var(--surface);
+    transition: all 0.3s ease;
+    user-select: none;
+}
+
+.collapsible-header:hover {
+    background: var(--background);
+}
+
+.collapsible-header.active {
+    background: linear-gradient(135deg, rgba(30, 144, 255, 0.05), rgba(139, 92, 246, 0.05));
+    border-bottom: 1px solid var(--border-color);
+}
+
+.collapsible-title {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.collapsible-title i {
+    color: var(--primary-color);
+    font-size: 1.25rem;
+}
+
+.collapsible-icon {
+    color: var(--text-secondary);
+    transition: transform 0.3s ease;
+    font-size: 1rem;
+}
+
+.collapsible-icon.rotate {
+    transform: rotate(180deg);
+}
+
+.collapsible-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+    padding: 0 1.5rem;
+}
+
+.collapsible-content.open {
+    max-height: 1000px;
+    padding: 1.5rem;
+}
+
+.collapsible-content p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.collapsible-content ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.collapsible-content ul li {
+    padding: 0.5rem 0;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.collapsible-content ul li strong {
+    color: var(--text-primary);
+}
+
+/* 使い方ステップ */
+.usage-steps {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.usage-steps li {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.usage-steps li:last-child {
+    border-bottom: none;
+}
+
+.usage-steps li strong {
+    color: var(--primary-color);
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+.usage-steps li p {
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+/* feature-card-linkのスタイル */
+.feature-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.feature-card-link:hover {
+    text-decoration: none;
+}
+
+/* ナビゲーションリンクのスタイル */
+.nav-link {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.nav-link:hover {
+    background: var(--background);
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.nav-link.active {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+}
+
+.nav-link i {
+    margin-right: 0.5rem;
+}

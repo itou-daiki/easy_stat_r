@@ -5,6 +5,7 @@ use crate::components::footer::Footer;
 use crate::components::sidebar::Sidebar;
 use crate::components::guide::Guide;
 use crate::components::file_upload::FileUpload;
+use crate::components::info_section::InfoSection;
 use crate::state::AppData;
 use crate::pages::{
     data_cleaning::DataCleaning, 
@@ -132,8 +133,64 @@ fn Home() -> impl IntoView {
                             <p class="feature-card-description">"度数の偏りを分析"</p>
                         </div>
                     </A>
+                    <A href="/t_test" class="feature-card-link">
+                        <div class="feature-card">
+                            <h3 class="feature-card-title">
+                                <i class="fas fa-balance-scale feature-card-icon"></i>
+                                "t検定（統合版）"
+                            </h3>
+                            <p class="feature-card-description">"2つのグループの平均値を比較"</p>
+                        </div>
+                    </A>
+                    <A href="/anova" class="feature-card-link">
+                        <div class="feature-card">
+                            <h3 class="feature-card-title">
+                                <i class="fas fa-layer-group feature-card-icon"></i>
+                                "分散分析（統合版）"
+                            </h3>
+                            <p class="feature-card-description">"複数グループの平均値を比較"</p>
+                        </div>
+                    </A>
+                    <A href="/regression" class="feature-card-link">
+                        <div class="feature-card">
+                            <h3 class="feature-card-title">
+                                <i class="fas fa-chart-line feature-card-icon"></i>
+                                "回帰分析（統合版）"
+                            </h3>
+                            <p class="feature-card-description">"変数間の因果関係をモデル化"</p>
+                        </div>
+                    </A>
+                    <A href="/pca" class="feature-card-link">
+                        <div class="feature-card">
+                            <h3 class="feature-card-title">
+                                <i class="fas fa-compress-arrows-alt feature-card-icon"></i>
+                                "主成分分析"
+                            </h3>
+                            <p class="feature-card-description">"データの次元を削減して可視化"</p>
+                        </div>
+                    </A>
+                    <A href="/factor_analysis" class="feature-card-link">
+                        <div class="feature-card">
+                            <h3 class="feature-card-title">
+                                <i class="fas fa-sitemap feature-card-icon"></i>
+                                "因子分析"
+                            </h3>
+                            <p class="feature-card-description">"潜在的な因子構造を探索"</p>
+                        </div>
+                    </A>
+                    <A href="/text_mining" class="feature-card-link">
+                        <div class="feature-card">
+                            <h3 class="feature-card-title">
+                                <i class="fas fa-comments feature-card-icon"></i>
+                                "テキストマイニング"
+                            </h3>
+                            <p class="feature-card-description">"テキストデータから意味を抽出"</p>
+                        </div>
+                    </A>
                 </div>
             </div>
+
+            <InfoSection/>
         </div>
     }
 }
