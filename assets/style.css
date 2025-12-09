@@ -33,7 +33,7 @@ body {
 
 /* ヒーローセクション */
 .hero-section {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    background: var(--primary-color);
     border-radius: 24px;
     padding: 4rem 2rem;
     text-align: center;
@@ -42,17 +42,6 @@ body {
     box-shadow: var(--shadow-xl);
     position: relative;
     overflow: hidden;
-}
-
-.hero-section::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-    animation: pulse 4s ease-in-out infinite;
 }
 
 @keyframes pulse {
@@ -117,7 +106,7 @@ body {
 .section-icon {
     width: 32px;
     height: 32px;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    background: var(--primary-color);
     border-radius: 8px;
     display: flex;
     align-items: center;
@@ -152,7 +141,7 @@ body {
     left: 0;
     width: 100%;
     height: 4px;
-    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    background: var(--primary-color);
     transform: translateX(-100%);
     transition: transform 0.3s ease;
 }
@@ -269,7 +258,7 @@ body {
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1.5rem;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    background: var(--primary-color);
     color: white;
     text-decoration: none;
     border-radius: 8px;
@@ -374,7 +363,7 @@ body {
 }
 
 .collapsible-header.active {
-    background: linear-gradient(135deg, rgba(30, 144, 255, 0.05), rgba(139, 92, 246, 0.05));
+    background: rgba(30, 144, 255, 0.1);
     border-bottom: 1px solid var(--border-color);
 }
 
@@ -496,10 +485,82 @@ body {
 }
 
 .nav-link.active {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    background: var(--primary-color);
     color: white;
 }
 
 .nav-link i {
     margin-right: 0.5rem;
+}
+
+/* データテーブルスタイル */
+.data-table,
+.stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    background: var(--surface);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.data-table thead,
+.stats-table thead {
+    background: var(--primary-color);
+    color: white;
+}
+
+.data-table th,
+.data-table td,
+.stats-table th,
+.stats-table td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.data-table th,
+.stats-table th {
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.data-table tbody tr:hover,
+.stats-table tbody tr:hover {
+    background: rgba(30, 144, 255, 0.05);
+}
+
+.data-table tbody tr:last-child td,
+.stats-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.stats-table td:first-child {
+    font-weight: 600;
+    color: var(--text-primary);
+    background: rgba(30, 144, 255, 0.05);
+}
+
+.data-table td,
+.stats-table td {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+/* テーブルのレスポンシブ対応 */
+@media (max-width: 768px) {
+    .data-table,
+    .stats-table {
+        font-size: 0.75rem;
+    }
+
+    .data-table th,
+    .data-table td,
+    .stats-table th,
+    .stats-table td {
+        padding: 0.5rem;
+    }
 }
