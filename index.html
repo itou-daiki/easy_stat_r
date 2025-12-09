@@ -6,6 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>easyStat</title>
 
+    <!-- SPA GitHub Pages リダイレクト復元スクリプト -->
+    <script>
+        // 404.htmlからのリダイレクトを処理
+        (function(l) {
+            if (l.search[1] === '/' ) {
+                var decoded = l.search.slice(1).split('&').map(function(s) {
+                    return s.replace(/~and~/g, '&')
+                }).join('?');
+                window.history.replaceState(null, null,
+                    l.pathname.slice(0, -1) + decoded + l.hash
+                );
+            }
+        }(window.location))
+    </script>
+
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
@@ -17,7 +32,7 @@
     <link data-trunk rel="css" href="assets/style.css">
     <link data-trunk rel="copy-dir" href="images">
     <link data-trunk rel="copy-dir" href="datasets">
-    <link data-trunk rel="copy-file" href="index.html" data-target-path="404.html" />
+    <link data-trunk rel="copy-file" href="404.html" />
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.5/d3.layout.cloud.min.js"></script>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
