@@ -76,31 +76,16 @@ fn Home() -> impl IntoView {
         <div>
             // Display Data Info, DataFrame Preview, and Summary Statistics
             {move || {
-                    if let Some(df) = app_data.df.get() {
+                if let Some(df) = app_data.df.get() {
                     let shape = df.shape();
-                    let column_names: Vec<String> = df.get_column_names().iter().map(|s| s.to_string()).collect();
+                    let column_names: Vec<String> = df.get_column_names()
+                        .iter()
+                        .map(|s| s.to_string())
+                        .collect();
 
                     // データフレームプレビュー（先頭10行）
                     let preview_df = df.head(Some(10));
-                    let mut rows_html = Vec::new();
-
-                    for i in 0..preview_df.height() {
-                        let mut row_values = Vec::new();
-                        for col_name in &column_names {
-                            if let Ok(col) = preview_df.column(col_name.as_str()) {
-                                let value = col.get(i).unwrap().to_string();
-                                row_values.push(value);
-                            }
-                        }
-                        rows_html.push(row_values);
-                    }
-
-                    // 数値列の要約統計量を計算
-                    let numeric_cols: Vec<String> = df.get_columns()
-                        .iter()
-                        .filter(|col| col.dtype().is_numeric())
-                        .map(|col| col.name().to_string())
-                        .collect();
+                    let num_rows = preview_df.height();
 
                     view! {
                         <div>
@@ -115,7 +100,7 @@ fn Home() -> impl IntoView {
                             <div class="section fade-in">
                                 <h2 class="section-title">
                                     <div class="section-icon"><i class="fas fa-table"></i></div>
-                                    "データフレームプレビュー (先頭10行)"
+                                    "データフレームプレビュー (先頭"{num_rows}"行)"
                                 </h2>
                                 <div style="overflow-x: auto;">
                                     <table class="data-table">
@@ -123,18 +108,26 @@ fn Home() -> impl IntoView {
                                             <tr>
                                                 {column_names.iter().map(|col_name| {
                                                     view! {
-                                                        <th>{col_name}</th>
+                                                        <th>{col_name.clone()}</th>
                                                     }
                                                 }).collect::<Vec<_>>()}
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {rows_html.iter().map(|row| {
+                                            {(0..num_rows).map(|row_idx| {
+                                                let row_data: Vec<String> = column_names.iter().map(|col_name| {
+                                                    preview_df.column(col_name.as_str())
+                                                        .ok()
+                                                        .and_then(|col| col.get(row_idx).ok())
+                                                        .map(|val| val.to_string())
+                                                        .unwrap_or_else(|| "N/A".to_string())
+                                                }).collect();
+
                                                 view! {
                                                     <tr>
-                                                        {row.iter().map(|val| {
+                                                        {row_data.iter().map(|val| {
                                                             view! {
-                                                                <td>{val}</td>
+                                                                <td>{val.clone()}</td>
                                                             }
                                                         }).collect::<Vec<_>>()}
                                                     </tr>
@@ -145,91 +138,57 @@ fn Home() -> impl IntoView {
                                 </div>
                             </div>
 
-                            {if !numeric_cols.is_empty() {
-                                view! {
-                                    <div class="section fade-in">
-                                        <h2 class="section-title">
-                                            <div class="section-icon"><i class="fas fa-calculator"></i></div>
-                                            "要約統計量"
-                                        </h2>
-                                        <div style="overflow-x: auto;">
-                                            <table class="stats-table">
-                                                <thead>
+                            <div class="section fade-in">
+                                <h2 class="section-title">
+                                    <div class="section-icon"><i class="fas fa-calculator"></i></div>
+                                    "要約統計量"
+                                </h2>
+                                <p>"数値列の基本統計量を表示します。"</p>
+
+                                <div style="overflow-x: auto;">
+                                    <table class="stats-table">
+                                        <thead>
+                                            <tr>
+                                                <th>"列名"</th>
+                                                <th>"平均"</th>
+                                                <th>"標準偏差"</th>
+                                                <th>"最小値"</th>
+                                                <th>"最大値"</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {column_names.iter().filter_map(|col_name| {
+                                                let col = df.column(col_name.as_str()).ok()?;
+
+                                                // 数値列のみ処理
+                                                if !col.dtype().is_numeric() {
+                                                    return None;
+                                                }
+
+                                                let mean = col.mean().unwrap_or(f64::NAN);
+                                                let std = col.std(1).unwrap_or(f64::NAN);
+                                                let min = col.min::<f64>().unwrap_or(f64::NAN);
+                                                let max = col.max::<f64>().unwrap_or(f64::NAN);
+
+                                                Some(view! {
                                                     <tr>
-                                                        <th>"統計量"</th>
-                                                        {numeric_cols.iter().map(|col_name| {
-                                                            view! {
-                                                                <th>{col_name}</th>
-                                                            }
-                                                        }).collect::<Vec<_>>()}
+                                                        <td><strong>{col_name.clone()}</strong></td>
+                                                        <td>{format!("{:.3}", mean)}</td>
+                                                        <td>{format!("{:.3}", std)}</td>
+                                                        <td>{format!("{:.3}", min)}</td>
+                                                        <td>{format!("{:.3}", max)}</td>
                                                     </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td><strong>"平均"</strong></td>
-                                                        {numeric_cols.iter().map(|col_name| {
-                                                            let mean = df.column(col_name.as_str())
-                                                                .ok()
-                                                                .and_then(|col| col.mean())
-                                                                .map(|v| format!("{:.3}", v))
-                                                                .unwrap_or_else(|| "N/A".to_string());
-                                                            view! {
-                                                                <td>{mean}</td>
-                                                            }
-                                                        }).collect::<Vec<_>>()}
-                                                    </tr>
-                                                    <tr>
-                                                        <td><strong>"標準偏差"</strong></td>
-                                                        {numeric_cols.iter().map(|col_name| {
-                                                            let std = df.column(col_name.as_str())
-                                                                .ok()
-                                                                .and_then(|col| col.std(1))
-                                                                .map(|v| format!("{:.3}", v))
-                                                                .unwrap_or_else(|| "N/A".to_string());
-                                                            view! {
-                                                                <td>{std}</td>
-                                                            }
-                                                        }).collect::<Vec<_>>()}
-                                                    </tr>
-                                                    <tr>
-                                                        <td><strong>"最小値"</strong></td>
-                                                        {numeric_cols.iter().map(|col_name| {
-                                                            let min = df.column(col_name.as_str())
-                                                                .ok()
-                                                                .and_then(|col| col.min::<f64>())
-                                                                .map(|v| format!("{:.3}", v))
-                                                                .unwrap_or_else(|| "N/A".to_string());
-                                                            view! {
-                                                                <td>{min}</td>
-                                                            }
-                                                        }).collect::<Vec<_>>()}
-                                                    </tr>
-                                                    <tr>
-                                                        <td><strong>"最大値"</strong></td>
-                                                        {numeric_cols.iter().map(|col_name| {
-                                                            let max = df.column(col_name.as_str())
-                                                                .ok()
-                                                                .and_then(|col| col.max::<f64>())
-                                                                .map(|v| format!("{:.3}", v))
-                                                                .unwrap_or_else(|| "N/A".to_string());
-                                                            view! {
-                                                                <td>{max}</td>
-                                                            }
-                                                        }).collect::<Vec<_>>()}
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                }.into_view()
-                            } else {
-                                view! { <div/> }.into_view()
-                            }}
+                                                })
+                                            }).collect::<Vec<_>>()}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     }.into_view()
-                    } else {
+                } else {
                     view! { <div/> }.into_view()
-                    }
+                }
             }}
 
             <Guide/>
