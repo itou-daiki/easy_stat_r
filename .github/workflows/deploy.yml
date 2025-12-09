@@ -1,0 +1,29 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - master # masterブランチへのプッシュをトリガーに
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Trunk
+        run: cargo install --locked trunk
+
+      - name: Build
+        # Trunk.tomlのpublic_urlを尊重しつつ、CIで明示的に指定
+        run: trunk build --release --public-url /easy_stat_r/
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist # デプロイするディレクトリ
