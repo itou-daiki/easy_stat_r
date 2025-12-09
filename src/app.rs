@@ -167,8 +167,8 @@ fn Home() -> impl IntoView {
 
                                                 let mean = col.mean().unwrap_or(f64::NAN);
                                                 let std = col.std(1).unwrap_or(f64::NAN);
-                                                let min = col.min::<f64>().unwrap_or(f64::NAN);
-                                                let max = col.max::<f64>().unwrap_or(f64::NAN);
+                                                let min = col.min::<f64>().flatten().unwrap_or(f64::NAN);
+                                                let max = col.max::<f64>().flatten().unwrap_or(f64::NAN);
 
                                                 Some(view! {
                                                     <tr>
