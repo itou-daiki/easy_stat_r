@@ -3,5 +3,9 @@ target = "index.html"
 dist = "dist"
 public_url = "/easy_stat_r/"
 
+# wasm-optを無効にしてビルドエラーを回避
+[build.release]
+wasm_opt = false
+
 [watch]
 ignore = ["./.git", "./target"]
