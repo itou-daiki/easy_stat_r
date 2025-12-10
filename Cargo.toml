@@ -15,7 +15,7 @@ wasm-bindgen = "0.2"
 
 # Data Processing
 # Polars: Wasm optimized configuration
-polars = { version = "0.41", default-features = false, features = ["lazy", "csv", "json", "dtype-full"] }
+polars = { version = "0.41", default-features = false, features = ["lazy", "csv", "json", "dtype-full", "describe"] }
 
 # Excel Support
 calamine = { version = "0.26", features = ["dates"] }

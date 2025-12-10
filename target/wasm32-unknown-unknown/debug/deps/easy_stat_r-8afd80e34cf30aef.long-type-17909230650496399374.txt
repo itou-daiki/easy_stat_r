@@ -1,2 +1,0 @@
-polars::prelude::AnyValue<'a>
-polars::prelude::AnyValue<'_>
